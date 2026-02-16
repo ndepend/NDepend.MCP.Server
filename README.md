@@ -337,7 +337,7 @@ show diff for the 5 last
 
 ## Requirements
 
-- .NET 8.0 or higher
+- .NET 10.0 or higher
 - ModelContextProtocol NuGet package
 
 ## Note
