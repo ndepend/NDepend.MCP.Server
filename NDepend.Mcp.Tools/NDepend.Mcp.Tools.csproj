@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.0" />
+        <PackageReference Include="ModelContextProtocol" Version="0.4.0-preview.3" />
+        <PackageReference Include="NuGet.Protocol" Version="7.0.0" />
+
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="NDepend.API">
+            <HintPath>..\artifacts\ndepend\Lib\NDepend.API.dll</HintPath>
+            <CopyLocal>False</CopyLocal>
+        </Reference>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <RootNamespace>NDepend.Mcp</RootNamespace>
+    </PropertyGroup>
+
+</Project>

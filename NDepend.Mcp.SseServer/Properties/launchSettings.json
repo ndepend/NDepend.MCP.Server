@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "NDepend.Mcp.SseServer": {
+      "commandName": "Project"
+    }
+  }
+}

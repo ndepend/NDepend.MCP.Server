@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NDepend.Mcp.StdioServer": {
+      "commandName": "Project",
+      "commandLineArgs": "--load-ndepend-project C:\\My\\NDepend\\7.Current\\AnalysisResultOfThisVersion\\NDependIn.ndproj"
+    }
+  }
+}

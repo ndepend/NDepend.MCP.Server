@@ -1,0 +1,35 @@
+All tools can be tested with these requests:
+
+-Initialize + Run Analysis + Web Report:
+run ndepend analysis
+give me analysis details
+build report
+
+-Complex queries with CQLinq query generation:
+list pairs of class that uses each other
+show me the query
+which class this class uses (direct and indirect)
+
+-Issue list & fix:
+which new issue in files named like Period
+fix the first one
+which code sprawl related issues
+
+-Metrics:
+which complex method poorly covered by tests
+list less maintainable methods
+
+-Quality Gates:
+which quality gate fail
+
+-Rules:
+which Roslyn rule don't fail?
+which ndepend rule fail with more than 5 issues
+
+-Code Search:
+which class is related to Minute and Second
+
+-Source Files:
+which source file changed since the baseline
+describe changes in the third one
+show diff for the 5 last
