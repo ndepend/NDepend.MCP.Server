@@ -3,9 +3,9 @@
 
 The **NDepend.MCP.Server** is a Model Context Protocol (MCP) server that delivers deep workspace analysis and advanced code inspection capabilities for .NET projects, powered by the NDepend API.
 
-Its key strengths are speed, rich semantic knowledge of the codebase and the ability to efficiently analyze and query very large .NET solutions. It gives the AI agent access to Roslyn Analyzers, ReSharper Code Inspections, and NDepend’s rules, along with objective code metrics such as maintainability, complexity and coverage, diff from a baseline, and dependency analysis features.
+Its key strengths are speed, rich semantic knowledge of the codebase and the ability to efficiently analyze and query large .NET solutions while keeping LLM token usage reasonable. It gives the AI agent access to Roslyn Analyzers, ReSharper Code Inspections, and NDepend’s rules, along with objective code metrics such as maintainability, complexity and coverage, diff from a baseline, and dependency analysis features.
 
-**Privacy:** While information like issues, metrics, dependencies, and identifiers is shared with the AI agent, your source code never leaves your environment—**NDepend runs entirely on-premises**. The LLM only accesses source code when you explicitly ask it to work on an issue fix.
+**Privacy:** While information like issues, metrics, dependencies, and identifiers is shared with the AI agent, your source code never leaves your environment—**NDepend scan runs entirely on-premises**. The LLM only accesses source code when you explicitly ask it to fix an issue.
 
 Since the project is open source, you’re free to adapt and extend the server with MCP tools that fit your workflow.
 
@@ -26,7 +26,7 @@ Since the project is open source, you’re free to adapt and extend the server w
   - Naming of code elements
   - State mutability (fields, properties, events)
   - Changes since a baseline
-  - Issues, rules or quality gates
+  - Issues, rules or quality gates status
   
 ## Build
 
@@ -341,13 +341,13 @@ show diff for the 5 last
 
 - .NET 10.0 or higher
 - ModelContextProtocol NuGet package
-- NDepend redistributable (evaluation or license) https://www.ndepend.com/download
+- NDepend version 2026.1.3 or upper redistributable (evaluation or license)
 
-## Note
+   ### Note
 
-This project is open source, but it relies on the NDepend.API, which requires a separate license (either a free evaluation or a paid license) to use.
-- Evaluation: https://www.ndepend.com/download
-- License: https://www.ndepend.com/purchase
+   This project is open source, but it relies on the NDepend.API, which requires a separate license (either a free evaluation or a paid license) to use.
+   - Evaluation: https://www.ndepend.com/download
+   - License: https://www.ndepend.com/purchase
 
 ## Contributing
 
