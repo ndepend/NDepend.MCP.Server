@@ -32,7 +32,7 @@ Since the project is open source, you’re free to adapt and extend the server w
 
 - First get the NDepend zipped redistributable from: https://www.ndepend.com/download
 
-- Unzip it in **%your-dir%\NDepend.MCP.Server\artifacts\artifacts\ndepend**
+- Unzip it in **%your-dir%\NDepend.MCP.Server\artifacts\ndepend**
 
   ![artifacts-ndepend-install](artifacts/images/artifacts-ndepend.png) 
 
