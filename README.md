@@ -3,7 +3,9 @@
 
 The **NDepend.MCP.Server** is a Model Context Protocol (MCP) server that delivers deep workspace analysis and advanced code inspection capabilities for .NET projects, powered by the NDepend API.
 
-Its key strengths are speed, rich semantic knowledge of the codebase, objective  metrics and the ability to efficiently analyze very large .NET solutions.
+Its key strengths are speed, rich semantic knowledge of the codebase and the ability to efficiently analyze and query very large .NET solutions. It gives the AI agent access to Roslyn Analyzers, ReSharper Code Inspections, and NDepend’s rules, along with objective code metrics such as maintainability, complexity and coverage, diff from a baseline, and dependency analysis features.
+
+**Privacy:** While information like issues, metrics, dependencies, and identifiers is shared with the AI agent, your source code never leaves your environment—**NDepend runs entirely on-premises**. The LLM only accesses source code when you explicitly ask it to work on an issue fix.
 
 Since the project is open source, you’re free to adapt and extend the server with MCP tools that fit your workflow.
 
@@ -339,6 +341,7 @@ show diff for the 5 last
 
 - .NET 10.0 or higher
 - ModelContextProtocol NuGet package
+- NDepend redistributable (evaluation or license) https://www.ndepend.com/download
 
 ## Note
 
