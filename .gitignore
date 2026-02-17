@@ -62,6 +62,8 @@ secrets.json
 
 # IDE
 *.code-workspace
+.7z
+.zip
 
 # OS generated files
 ehthumbs.db
