@@ -34,20 +34,20 @@ Since the project is open source, you’re free to adapt and extend the server w
 
 - First get the NDepend zipped redistributable from: https://www.ndepend.com/download
 
-- Unzip it in **%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\ndepend**
+- Unzip it in **%ndp-mcp-svr-dir%\artifacts\ndepend**
 
   ![artifacts-ndepend-install](artifacts/images/artifacts-ndepend.png) 
 
 - **REQUIRED:** Run **VisualNDepend.exe** once to start your evaluation or register a license.
 
-- Then rebuild the solution **%ndp-mcp-svr-dir%\NDepend.MCP.Server\NDepend.Mcp.Server.sln**
+- Then rebuild the solution **%ndp-mcp-svr-dir%\NDepend.Mcp.Server.sln**
 
 - DLLs and executables built can be found here:
 ```
-%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\NDepend.Mcp.StdioServer.exe
+%ndp-mcp-svr-dir%\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\NDepend.Mcp.StdioServer.exe
 ```
 ```
-%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\bin\NDepend.Mcp.SseServer\Debug\net10.0\NDepend.Mcp.SseServer.exe
+%ndp-mcp-svr-dir%\artifacts\bin\NDepend.Mcp.SseServer\Debug\net10.0\NDepend.Mcp.SseServer.exe
 ```
 
 ## MCP Server Registration
@@ -64,7 +64,7 @@ This will add to the MCP JSON configuration file (for stdio):
   "servers": {
     "NDepend.Mcp.Server": {
       "type": "stdio",
-      "command": "%ndp-mcp-svr-dir%\\NDepend.MCP.Server\\artifacts\\bin\\NDepend.Mcp.StdioServer\\Debug\\net10.0\\NDepend.Mcp.StdioServer.exe",
+      "command": "%ndp-mcp-svr-dir%\\\artifacts\\bin\\NDepend.Mcp.StdioServer\\Debug\\net10.0\\NDepend.Mcp.StdioServer.exe",
       "env": {}
     }
   }
@@ -100,7 +100,7 @@ Note that if the same MCP server is listed in both a global configuration file a
 - If an error occurs while using an NDepend MCP tool, check the log files located at:
 
 ```
-%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\logs
+%ndp-mcp-svr-dir%\artifacts\logs
 ```
 
 ## Usage

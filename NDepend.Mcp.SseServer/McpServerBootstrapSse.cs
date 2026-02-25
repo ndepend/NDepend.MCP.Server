@@ -18,6 +18,8 @@ namespace NDepend.Mcp.SseServer {
 
             var portOption = new Option<int>("--port") {
                 Description = "The port number for the NDepend MCP server to listen on.",
+                // Port 3001 is a reasonable default for the SseServer, 
+                // but if it’s already in use, choose a different port.
                 DefaultValueFactory = x => 3001
             };
 

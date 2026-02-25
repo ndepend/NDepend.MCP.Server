@@ -1,5 +1,6 @@
 ﻿
 using System.CommandLine;
+using System.Reflection;
 using ModelContextProtocol.Protocol;
 using NDepend.Mcp.Services;
 using Serilog;
@@ -10,13 +11,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+
 namespace NDepend.Mcp.Server {
     internal abstract class McpServerBootstrapBase {
 
         internal abstract string Kind { get; }
 
         internal string ApplicationName => $"NDependMcp{Kind}Server";
-        internal string ApplicationVersion => "0.0.1";
+        internal string ApplicationVersion => Assembly.GetExecutingAssembly()
+            .GetName()
+            .Version?
+            .ToString()
+            ?? "unknown";
 
         
         protected bool TryParseArgument(
