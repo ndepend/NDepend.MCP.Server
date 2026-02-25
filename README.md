@@ -27,6 +27,11 @@ Since the project is open source, you’re free to adapt and extend the server w
   - State mutability (fields, properties, events)
   - Changes since a baseline
   - Issues, rules or quality gates status
+
+Watch this video featuring the NDepend MCP Server, including five complete demos and an in-depth guide to creating your own C# MCP Server: 
+
+
+[![MCP-logo](artifacts/images/video-cover.jpg)](https://www.youtube.com/watch?v=-MDFXj1rUjU)
   
 ## Build
 
