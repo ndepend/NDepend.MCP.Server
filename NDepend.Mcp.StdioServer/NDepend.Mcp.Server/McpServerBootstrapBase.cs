@@ -149,7 +149,7 @@ namespace NDepend.Mcp.Server {
                 var ndependService = host.Services.GetRequiredService<INDependService>();
 
                 logger.LogInformation($"Loading NDepend project: `{ndpProjectPath}`", ndpProjectPath);
-                ndependService.InitializeFromProject(ndpProjectPath, logger);
+                ndependService.InitializeFromProject(ndpProjectPath, logger, _ => { }, out _);
 
             } catch (Exception ex) {
                 logger.LogError(ex, $"Error loading NDepend project: ${ndpProjectPath}");

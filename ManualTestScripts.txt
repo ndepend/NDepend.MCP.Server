@@ -33,3 +33,28 @@ which class is related to Minute and Second
 which source file changed since the baseline
 describe changes in the third one
 show diff for the 5 last
+
+Other requests used for testing:
+
+Which methods pair call each other
+Which ctor that register to some events in a non disposable class
+Which base classes are using one or more derived classes, exhibit unwanted calls
+Generate a code query to check for the SOLID open close principle and run it
+Generate a code rule to enforce Clean Architecture and execute it
+Gen a code query to match classes mutually dependent, run it and export the result to a graph
+Generate a code query that identifies methods that are both poorly maintainable and insufficiently tested.
+Generate a query to identify methods that are too long, insufficiently commented, overly complex, or otherwise problematic.
+Write an NDepend code rule that enforces type names to start with an uppercase letter.
+Write a CQLinq query that matches all public API elements in the Domain assemblies.
+Write a query to select methods whose source files are under the 'Customer' directory.
+Generate a query to match less maintainable new method created baseline
+Generate a code query that lists all code elements decorated with one or more attributes, listing the parameter values applied to each attribute instance.
+Generate a code query to list types with poor encapsulation
+Write a query to identify which types are immutable, partially immutable, or fully mutable to understand design patterns. For each type match the various fields.
+Generate a query to detect fat interfaces and list types using only a small portion of it
+Generate a query to list pair of methods calling each others
+Generate an NDepend trend metric that measures the amount of code coverage on JustMyCode only
+Generate a Quality Gate to prevent any new issue since the baseline in any namespace related to 'Domain'
+Write a code rule that matches all nested types publicly visible
+Generate a code query to match disposable type that register to events in ctor but don't deregister in the Dispose() method
+Generate a query to match issues related to code smells and run it

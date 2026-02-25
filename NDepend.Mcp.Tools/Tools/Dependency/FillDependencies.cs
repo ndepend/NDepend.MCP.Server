@@ -21,7 +21,7 @@ internal static class FillDependencies {
         bool newAdded = Fill(dico); // Fill direct dependencies
 
         // Eventually fill indirect dependencies
-        bool fillIndirect = 0 != (kinds & (DependencyKind.IndirectCaller | DependencyKind.IndirectCallee | DependencyKind.IndirectCallerAndCallee));
+        bool fillIndirect = 0 != (kinds & (DependencyKind.IndirectCaller | DependencyKind.IndirectCallee | DependencyKind.IndirectEntangled));
         while (newAdded && fillIndirect) {
             newAdded = Fill(dico);
         }
@@ -35,8 +35,8 @@ internal static class FillDependencies {
             uint finalDepth = 1;
 
             // Direct dependencies
-            if (kinds.HasFlag(DependencyKind.DirectCallerAndCallee) && depth is { CallerDepth: 1, CalleeDepth: 1 }) {
-                finalKind = DependencyKind.DirectCallerAndCallee;
+            if (kinds.HasFlag(DependencyKind.DirectEntangled) && depth is { CallerDepth: 1, CalleeDepth: 1 }) {
+                finalKind = DependencyKind.DirectEntangled;
 
             } else if (kinds.HasFlag(DependencyKind.DirectCaller) && depth.CallerDepth == 1) {
                 finalKind = DependencyKind.DirectCaller;
@@ -47,8 +47,8 @@ internal static class FillDependencies {
 
             // Indirect dependencies
             if (finalKind == null) {
-                if (kinds.HasFlag(DependencyKind.IndirectCallerAndCallee) && depth is { CallerDepth: > 0, CalleeDepth: > 0 }) {
-                    finalKind = (depth.CallerDepth == 1 || depth.CalleeDepth == 1) ? DependencyKind.DirectCallerAndCallee : DependencyKind.IndirectCallerAndCallee;
+                if (kinds.HasFlag(DependencyKind.IndirectEntangled) && depth is { CallerDepth: > 0, CalleeDepth: > 0 }) {
+                    finalKind = (depth.CallerDepth == 1 || depth.CalleeDepth == 1) ? DependencyKind.DirectEntangled : DependencyKind.IndirectEntangled;
                     finalDepth = (uint)Math.Min(depth.CallerDepth, depth.CalleeDepth);
 
                 } else if (kinds.HasFlag(DependencyKind.IndirectCaller) && depth.CallerDepth > 0) {

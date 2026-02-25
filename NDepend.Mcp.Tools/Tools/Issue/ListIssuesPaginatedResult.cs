@@ -2,7 +2,7 @@
 
 namespace NDepend.Mcp.Tools.Issue {
 
-    [Description("This class let's paginate the server's response to a list issues request from the client.")]
+    [Description($"Enables pagination for `{IssueTools.TOOL_LIST_ISSUES_NAME}` MCP tool responses.")]
     public sealed class ListIssuesPaginatedResult : PaginatedResult {
 
         public ListIssuesPaginatedResult(
@@ -11,7 +11,7 @@ namespace NDepend.Mcp.Tools.Issue {
             Issues = issuesPaginated;
         }
 
-        [Description("Gets or sets the sequence of issues paginated.")]
+        [Description("Sequence of paginated issues")]
         public IEnumerable<IssueInfo> Issues { get; set; } = [];
     }
 }

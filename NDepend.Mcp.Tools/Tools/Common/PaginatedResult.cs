@@ -1,9 +1,15 @@
-﻿using NDepend.Mcp.Helpers;
-
+﻿
 namespace NDepend.Mcp.Tools.Common {
 
-    [Description("This base class let's paginate the server's response to a list items request from the client.")]
+    [Description("Paginates server list responses to the client.")]
     public class PaginatedResult {
+
+        internal const string PAGINATION_CURSOR_DESC = "Cursor for pagination; `0` starts from the beginning.";
+
+        internal static readonly PaginatedResult Empty = new PaginatedResult(
+            paginatedCount: 0,
+            totalCount: 0,
+            nextCursor: -1);
 
         // ctor called by derived classes
         protected PaginatedResult(PaginatedResult paginatedResult) {
@@ -16,43 +22,41 @@ namespace NDepend.Mcp.Tools.Common {
         private PaginatedResult(
              int paginatedCount,
              int totalCount,
-             string? nextCursor = null) {
+             int nextCursor) {
             PaginatedCount = paginatedCount;
             TotalCount = totalCount;
             NextCursor = nextCursor;
         }
 
 
-        [Description("Gets or sets the number of items paginated in the sequence Issues.")]
+        [Description("Number of items in the current page")]
         public int PaginatedCount { get; set; }
 
-        [Description("Gets or sets the total number of items matched by the request. " +
-                     "Useful when the client requests only the total count without retrieving all items.")]
+        [Description("Total items matching the request")]
         public int TotalCount { get; set; }
 
-        [Description("Gets or sets the server's response to a list items request from the client.")]
-        public string? NextCursor { get; set; }
+        [Description("Next page cursor, or -1 if no more page available")]
+        public int NextCursor { get; set; }
 
         internal static PaginatedResult Build<T,C>(
                 ILogger<C> logger,
                 IEnumerable<T> items, 
-                string? cursor, 
+                int cursor, 
                 int pageSize,
+                string maxPageSizeStr, // Must be a string to be includable in 'pageSize' parameter description literal string
                 out IEnumerable<T> paginatedItems) {
             int count = items.Count();
 
             // Apply pagination
-            int startIndex = 0;
-            if (cursor.IsValid()) {
-                if (int.TryParse(cursor, out int cursorTmp)) {
-                    startIndex = cursorTmp;
-                }
-            }
+            int startIndex = cursor >= 0 ? cursor : 0;
+            int maxPageSize = int.Parse(maxPageSizeStr);
+            if(pageSize <= 0 || pageSize > maxPageSize) { pageSize = maxPageSize; }
+
             //  if(startIndex > count)   Skip(startIndex) will return an empty sequence
             //  Take(pageSize) will return available paginatedItems, even if it's less than pageSize.
             paginatedItems = items.Skip(startIndex).Take(pageSize);
             int endIndex = Math.Min(startIndex + pageSize, count);
-            string? nextCursor = endIndex == count ? null : endIndex.ToString();
+            int nextCursor = endIndex == count ? -1 : endIndex;
 
             logger.LogInformation($"{count} total items. Pagination returns items from {startIndex} till {endIndex}.");
 

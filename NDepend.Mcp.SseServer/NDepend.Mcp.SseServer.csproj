@@ -4,10 +4,8 @@
         <SelfContained>false</SelfContained>
         <AssemblyName>NDepend.Mcp.SseServer</AssemblyName>
     </PropertyGroup>
-
-
     <ItemGroup>
-        <Compile Include="..\NDepend.Mcp.StdioServer\McpServerBootstrapBase.cs" Link="McpServerBootstrapBase.cs" />
+      <Compile Include="..\NDepend.Mcp.StdioServer\NDepend.Mcp.Server\McpServerBootstrapBase.cs" Link="NDepend.Mcp.Server\McpServerBootstrapBase.cs" />
     </ItemGroup>
 
 
@@ -20,6 +18,10 @@
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
         <PackageReference Include="System.CommandLine" Version="2.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="NDepend.Mcp.Server\" />
     </ItemGroup>
 
 </Project>

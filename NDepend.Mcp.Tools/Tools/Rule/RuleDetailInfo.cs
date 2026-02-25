@@ -2,15 +2,14 @@
 namespace NDepend.Mcp.Tools.Rule;
 
 
-[Description("Represents an NDepend rule, Roslyn analyzer, or ReSharper code inspection, with a detailed description and fix guidance.")]
+[Description("Code rule with description and fix guidance")]
 public record RuleDetailInfo : RuleSummaryInfo {
-    [Description("Gets or sets the provider of this rule.")]
+    [Description("Rule provider")]
     public string Provider { get; set; } = "";
-    [Description("Gets or sets a detailed description of this rule.")]
+    [Description("Rule description")]
     public string Description { get; set; } = "";
-
-    [Description("Gets or sets how to resolve an issue of this rule.")]
+    [Description("How to fix violations")]
     public string RuleHowToFix { get; set; } = "";
-    [Description("Gets or sets the rule category.")]
+    [Description("Rule category")]
     public string Category { get; set; } = "";
 }

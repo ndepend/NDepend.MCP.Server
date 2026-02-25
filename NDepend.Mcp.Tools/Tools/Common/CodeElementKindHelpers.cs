@@ -15,26 +15,6 @@ internal static class CodeElementKindHelpers {
     internal const string KIND_PROPERTY = "property";
     internal const string KIND_EVENT = "event";
 
-    internal const string SIMPLE_NAME_EXPLANATION =
-            """
-            - For methods, the simple name is the method name only with no parameters nor parenthesis.
-            - For types, the simple name is the type name only.
-            - For namespaces, the simple name is the last (rightmost) part.
-            """;
-
-    internal const string FULL_NAME_EXPLANATION =
-            """
-            - For methods, the full name is 'namespace.type.method(comma separated parameter types)'.
-            - For types, the full name is 'namespace.type'.
-            - For namespaces, the full name includes all namespace parts.
-            """;
-
-    internal const string PARENT_NAME_EXPLANATION =
-            """
-            - For methods, this is the parent type name.
-            - For types, this is the parent namespace full name.
-            - For namespaces, this is the parent project name.
-            """;
 
 
     internal static CodeElementKind GetKindOfCodeElementVal<C>(ILogger<C> logger, IEnumerable<string> arr) {

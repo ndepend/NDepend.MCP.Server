@@ -2,7 +2,7 @@
 
 namespace NDepend.Mcp.Tools.Rule {
 
-    [Description("This class let's paginate the server's response to a list rules request from the client.")]
+    [Description($"Enables pagination for `{RuleTools.TOOL_LIST_RULES_DETAILED_NAME}` MCP tool responses.")]
     public sealed class ListRulesPaginatedResult : PaginatedResult {
 
         public ListRulesPaginatedResult(
@@ -11,7 +11,7 @@ namespace NDepend.Mcp.Tools.Rule {
             Rules = rulesPaginated;
         }
 
-        [Description("Gets or sets the sequence of rules paginated.")]
+        [Description("Sequence of paginated rules")]
         public IEnumerable<RuleDetailInfo> Rules { get; set; } = [];
     }
 }

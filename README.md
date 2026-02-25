@@ -11,18 +11,18 @@ Since the project is open source, you’re free to adapt and extend the server w
 
 ## Features
 
-- **Workspace Overview** - Get high-level information and statistics about your .NET workspace.
+- **Workspace Overview** - Provide the LLM with **comprehensive**, **detailed** and **unbiased** information about your .NET workspace—obtained quickly- without sending source code to the LLM and without consuming tokens.
 - **Source Code Analysis** - Analyze C# source files, quality, and project structure.
 - **Dependency Tracking** - Explore project dependencies and generate SVG diagrams of your code.
 - **Issues List** - Identify code issues from NDepend rules, Roslyn Analyzers, and ReSharper Code Inspections.
 - **Issues Fix** - Provide rich issue data to guide Copilot and the LLM in suggesting proper fixes (suport complex issue fix involving  multiple source files).
 - **Generate Web Report** - Generate a full NDepend web report and open it in the browser. See sample reports here: https://www.ndepend.com/sample-reports/
-- **Generate CQLinq Query and Rule** - Guide the LLM in creating custom code queries or rules based on your requirements.
+- **Generate CQLinq Query and Rule** - Guide the LLM in creating custom code queries, rules or quality gates based on your requirements.
 - **Answer Complex Request About Your Code** - Based on the user request, generate and execute complex queries on-the-fly to inspect: 
   - Source code files
   - Code quality (lines of code, comment, complexity, maintainability index, code coverage)
   - Code dependencies (usage, coupling, cohesion, Clean Architecture)
-  - Object Oriented usage (inheritance, interface, encapsulation, instantiation, SOLID principles)
+  - Object Oriented usage (inheritance, interface, encapsulation, instantiation, SOLID principles enforcement)
   - Naming of code elements
   - State mutability (fields, properties, events)
   - Changes since a baseline
@@ -30,27 +30,29 @@ Since the project is open source, you’re free to adapt and extend the server w
   
 ## Build
 
+- Clone or download this repository into a local folder on your machine (referred to as **%ndp-mcp-svr-dir%**).
+
 - First get the NDepend zipped redistributable from: https://www.ndepend.com/download
 
-- Unzip it in **%your-dir%\NDepend.MCP.Server\artifacts\ndepend**
+- Unzip it in **%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\ndepend**
 
   ![artifacts-ndepend-install](artifacts/images/artifacts-ndepend.png) 
 
 - **REQUIRED:** Run **VisualNDepend.exe** once to start your evaluation or register a license.
 
-- Then rebuild the solution **%your-dir%\NDepend.MCP.Server\NDepend.Mcp.Server.sln**
+- Then rebuild the solution **%ndp-mcp-svr-dir%\NDepend.MCP.Server\NDepend.Mcp.Server.sln**
 
 - DLLs and executables built can be found here:
 ```
-%your-dir%\NDepend.MCP.Server\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\NDepend.Mcp.StdioServer.exe
+%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\NDepend.Mcp.StdioServer.exe
 ```
 ```
-%your-dir%\NDepend.MCP.Server\artifacts\bin\NDepend.Mcp.SseServer\Debug\net10.0\NDepend.Mcp.SseServer.exe
+%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\bin\NDepend.Mcp.SseServer\Debug\net10.0\NDepend.Mcp.SseServer.exe
 ```
 
 ## MCP Server Registration
 
-You can register the NDepend MCP Server from Visual Studio or VSCode this way.
+The image below shows two screenshots—Visual Studio on the left and VS Code on the right. You can register the NDepend MCP Server from either environment using these menus.
 
 ![ndepend-logo](artifacts/images/vs-reg-mcp.png) 
 
@@ -62,7 +64,7 @@ This will add to the MCP JSON configuration file (for stdio):
   "servers": {
     "NDepend.Mcp.Server": {
       "type": "stdio",
-      "command": "%your-dir%\\NDepend.MCP.Server\\artifacts\\bin\\NDepend.Mcp.StdioServer\\Debug\\net8.0\\NDepend.Mcp.StdioServer.exe",
+      "command": "%ndp-mcp-svr-dir%\\NDepend.MCP.Server\\artifacts\\bin\\NDepend.Mcp.StdioServer\\Debug\\net10.0\\NDepend.Mcp.StdioServer.exe",
       "env": {}
     }
   }
@@ -98,7 +100,7 @@ Note that if the same MCP server is listed in both a global configuration file a
 - If an error occurs while using an NDepend MCP tool, check the log files located at:
 
 ```
-%your-dir%\NDepend.MCP.Server\artifacts\logs
+%ndp-mcp-svr-dir%\NDepend.MCP.Server\artifacts\logs
 ```
 
 ## Usage
@@ -170,7 +172,7 @@ describe changes in the third one
 show diff for the 5 last
 ```
 
-## Exposed Tools
+## 14 Exposed MCP Tools
 
 ### Initialization Tools
 
@@ -182,7 +184,7 @@ show diff for the 5 last
 
 ### Analysis Tools
 
-- `ndepend-run-analysis`: Run the NDepend analysis on the initialized workspace and update all session data (dependencies, issues, metrics, etc...).
+- `ndepend-run-analysis`: Run the NDepend analysis on the initialized workspace and update all session data (dependencies, issues, metrics, etc...). Returns analysis data loaded (snapshot date, baseline snapshot date, .ndar analysis result file...).
 
   Use when:
   - User explicitly requests: "run analysis", "analyze the code", "refresh results"
@@ -196,25 +198,6 @@ show diff for the 5 last
   - User wants interactive exploration
   - User asks for visual/graphical outputs
 
-- `ndepend-get-analysis-result-info`: Retrieve metadata about current and baseline analysis results in the session.
-
-  Use when:
-  - User asks: "when was the analysis run?", "what project is being analyzed?"
-  - User wants baseline information
-  - Debugging or verification scenarios
-
-### Search & Discovery Tools
-
-- `ndepend-search-code-elements`: Search and discover code elements across the codebase.
-
-    Use when:
-  - Discovery & Navigation: "Which classes are related to authentication?"
-  - Pattern & Convention: "Which classes follow the *Manager pattern?"
-  - File-Based: "What's in the UserService.cs file?"
-  - Change Tracking: "Which methods were added since the baseline?"
-
-**All tools that query the codebase like `ndepend-search-code-elements` include a *currentOrBaseline* flag, which lets you run the tool against either the current analysis results or the baseline.**
-
 ### Code Metrics Tools
 
 - `ndepend-search-code-metrics`: Collect and analyze code metrics for quality assessment.
@@ -226,6 +209,12 @@ show diff for the 5 last
   - Size & Complexity: "How many lines of code in this class?"
   - Comparison & Prioritization: "Compare metrics across services"
 
+  Also use for code search when:
+  - Discovery & Navigation: "Which classes are related to authentication?"
+  - Pattern & Convention: "Which classes follow the *Manager pattern?"
+  - File-Based: "What's in the UserService.cs file?"
+  - Change Tracking: "Which methods were added since the baseline?"
+  
 ### Dependency Analysis Tools
 
 - `ndepend-list-dependencies`: Collect and present dependencies for code elements with comprehensive context. Also generate a HTML SVG diagram of the required dependency.
@@ -301,6 +290,14 @@ show diff for the 5 last
   - Refactoring Analysis: "Show me the code before I refactor it"
   - Following Up on Other Tools: "Show me the code with low maintainability"
 
+ - `ndepend-diff-sources`: Invokes NDepend's diff action to compare a source file's current content against its baseline using the configured source compare tool.
+
+   Use when:
+   - "Show me the before and after"
+   - "compare with the old version"
+   - "What's changed in this method?"
+   - "show differences since baseline"
+
 ### Code Query Tools
 
 - `ndepend-gen-code-query-and-rule`: Provide prompts to the LLM to make it an expert in code queries and rule generation. The LLM first identifies the code querying features it needs based on the user’s request, then it calls this tool to obtain a prompt for each feature choosen.
@@ -325,22 +322,20 @@ show diff for the 5 last
   - `diff-since-baseline`, `naming`, `attribute`, `source-file-declaration`
   - `event-pattern`, `constructor-instantiation`
 
-- `ndepend-compile-code-query-or-rule`: Validate code queries/rules for syntax errors and compilation issues. Returns compilation errors if any, to let a chance to the LLM to fix them.
-
-  Use when:
-  - **ALWAYS** after `ndepend-gen-code-query-and-rule` to validate the generated code query or rule
-
 - `ndepend-run-code-query-or-rule`: Compile and execute code query or rule against the session's analysis result and baseline.
 
   Use when:
-  - After generating and compiling a query
+  - After generating a query
   - User requests execution
-  - Complex codebase analysis requiring custom queries- 
+  - Complex codebase analysis requiring custom queries
+
+  Also use to check whether a generated query compiles (parameters compileOnly set to `True`). If the query fails to compile, an `McpException` is thrown containing the compilation errors in its message, allowing the LLM to correct them.
 
 ## Requirements
 
+- Windows, Linux or MacOS
 - .NET 10.0 or higher
-- ModelContextProtocol NuGet package
+- ModelContextProtocol NuGet package (loaded at build time)
 - NDepend version 2026.1.3 or upper redistributable (evaluation or license)
 
    ### Note

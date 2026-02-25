@@ -3,20 +3,25 @@
 namespace NDepend.Mcp.Tools.Common;
 
 [Flags]
-[Description("Specifies the change status of a code element when comparing the current snapshot to the baseline snapshot.")]
+[Description("Code element change status vs baseline")]
 internal enum CodeChangeStatusSinceBaseline {
-    [Description("The code element is not in the baseline; it has been recently introduced.")]
+
+    // The code element is not in the baseline; it has been recently introduced
+    [Description("New")] 
     New = 0x01,
 
-    [Description("The code element exists in both snapshots but has been modified since the baseline.")]
+    // The code element exists in both snapshots but has been modified since the baseline.
+    [Description("Modified")]
     Modified = 0x02,
 
-    [Description("The code element exists in both snapshots and has not changed since the baseline.")]
+    // The code element exists in both snapshots and has not changed since the baseline.
+    [Description("Unchanged")]
     Unchanged = 0x04,
 
-    [Description("The code element was present in the baseline but is missing from the current snapshot.")]
+    // The code element was present in the baseline but is missing from the current snapshot.
+    [Description("Removed from current")]
     Removed = 0x08,
 
-    [Description("Default includes all code elements in the current snapshot.")]
+    [Description("Default (New/Modified/Unchanged)")]
     Default = New | Modified | Unchanged
 }

@@ -14,52 +14,71 @@ namespace NDepend.Mcp.Tools.CodeQuery;
 
 public static partial class CodeQueryTools {
     
-    internal const string TOOL_RUN_QUERY = Constants.TOOL_NAME_PREFIX + "run-code-query-or-rule";
+    internal const string TOOL_RUN_QUERY_NAME = Constants.TOOL_NAME_PREFIX + "run-code-query-or-rule";
 
+    const string MAX_PAGE_SIZE = "100";
 
-    [McpServerTool(Name = TOOL_RUN_QUERY, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
+    [McpServerTool(Name = TOOL_RUN_QUERY_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
      Description($"""
               {Constants.PROMPT_CALL_INITIALIZE}
               
-              PURPOSE:
+              # Compile and Run
               
-              Compile and execute a code query or a code rule against the initialized NDepend project analysis result.
+              Compile and execute a code query or rule on the initialized NDepend analysis.
               
-              The result includes the list of records or issues returned by the code query or rule execution.
+              ## Output
               
-              The result is paginated to avoid LLM prompt overflow.
+              Returns matching records/issues (paginated to prevent prompt overflow)
               
-              If the compilation or execution fails, an exception is thrown with error explanation.
+              ## Response Formatting
+              
+              ### 1. Clickable Locations (MANDATORY)
+              Always show: `(file.ext:line)`
+              Example: `Null check needed in GetUser (UserService.cs:45)`
+              
+              ### 2. Number All Rows (1-based) (MANDATORY)
+              Format: `1. `, `2. `, `3. `
+              Enables: `Fix #2`, `Explain #5`
+              
+              ## Errors
+              
+              Compile errors → Throws `McpException` listing all errors
+              
+              Execution failure → Throws `McpException` with explanation
+              
+              ## Note
+              
+              **REQUIRED:** Call `{TOOL_GEN_QUERY_NAME}` prior generating any query or rule.
               """)]
     public static async Task<ListExecuteCodeQueryPaginatedResult> RunCodeQueryOrRule(
             INDependService service,
             ILogger<CodeQueryToolsLog> logger,
 
-            [Description(
-                "An opaque token representing the pagination position after the last returned result. Set to null to start from the beginning.")]
-            string? cursor,
+            [Description(PaginatedResult.PAGINATION_CURSOR_DESC)]
+            int cursor,
 
-            [Description(
-                "Maximum number of issues to include per page. Must not exceed 100 to prevent LLM prompt overflow.")]
+            [Description($"Max number of rows per page (≤ {MAX_PAGE_SIZE}) to avoid LLM prompt overflow.")]
             int pageSize,
 
-            [Description("The code query or code rule as a string, to compile and then execute.")]
+            [Description("Code query or rule to compile and execute")]
             string codeQueryOrRule,
 
-            [Description(
-               "Defaults to false. Set to true only for dependency-related queries or when the user explicitly requests exporting a graph of the matched code elements.")]
+            [Description("Default: `False`. Set `True` only for dependency related queries")]
             bool exportGraph,
 
-            [Description("A cancellation token for interrupting and canceling the operation.")]
+            [Description("Default: `False`. Set `True` to check whether the query compile (do not execute)")]
+            bool compileOnly,
+
             CancellationToken cancellationToken) {
         logger.LogInformation(
         $"""
          {LogHelpers.TOOL_LOG_SEPARATOR}
-         Invoking {TOOL_RUN_QUERY} with arguments: 
-            -cursor=`{cursor ?? "0"}`
-            -pageSize=`{pageSize}`
+         Invoking {TOOL_RUN_QUERY_NAME} with arguments: 
+            -cursor= `{cursor}`
+            -pageSize= `{pageSize}`
             -codeQueryOrRule: `{codeQueryOrRule}`
             -exportGraph: `{exportGraph.ToString()}`
+            -compileOnly: `{compileOnly.ToString()}`
          """);
         if (!service.IsInitialized(out Session session)) {
             logger.LogErrorAndThrow(Constants.PROMPT_CALL_INITIALIZE);
@@ -84,6 +103,9 @@ public static partial class CodeQueryTools {
                      {errors.Count.ToString()} compilation error{(errors.Count > 1 ? "s" : "")}:
                      {sb.ToString()}                
                      """);
+            }
+            if(compileOnly) {
+                return new ListExecuteCodeQueryPaginatedResult([], PaginatedResult.Empty);
             }
             IQueryCompiledSuccess queryCompiledSuccess = queryCompiled.QueryCompiledSuccess;
 
@@ -149,7 +171,7 @@ public static partial class CodeQueryTools {
             }
 
             // Paginate and build finalResult
-            var paginatedResult = PaginatedResult.Build(logger, recordsInfo, cursor, pageSize, out var paginatedIssuesInfo);
+            var paginatedResult = PaginatedResult.Build(logger, recordsInfo, cursor, pageSize, MAX_PAGE_SIZE, out var paginatedIssuesInfo);
             var finalResult = new ListExecuteCodeQueryPaginatedResult(paginatedIssuesInfo, paginatedResult) {
                 ScalarResult = iScalarResult ? successResult.SingleScalarValue : null,
 

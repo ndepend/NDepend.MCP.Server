@@ -2,55 +2,49 @@
 
 namespace NDepend.Mcp.Tools.Metric {
     [Flags]
-    [Description("Represents the set of code metrics that can be computed for code elements.")]
+    [Description("Code metrics for analysis")]
     public enum CodeMetric {
         [Description(
             $"""
-            Number of lines of code.
-            A `{CodeElementKindHelpers.KIND_METHOD}` with `{CodeMetricHelpers.METRIC_LOC}` above 50 or 
-            a `{CodeElementKindHelpers.KIND_TYPE}` with `{CodeMetricHelpers.METRIC_LOC}` above 400
-            is considered problematic.
+            Lines of code ({CodeMetricHelpers.METRIC_LOC_ACRONYM})
+            Problematic: `{CodeElementKindHelpers.KIND_METHOD}`>50, `{CodeElementKindHelpers.KIND_TYPE}`>400
             """)]
         LinesOfCode = 0x01,
         [Description(
             $"""
-            Cyclomatic complexity. 
-            A `{CodeElementKindHelpers.KIND_METHOD}` with `{CodeMetricHelpers.METRIC_CC}` above 20 or 
-            a `{CodeElementKindHelpers.KIND_TYPE}` with `{CodeMetricHelpers.METRIC_CC}` above 200
-            is considered problematic.
+            Cyclomatic complexity ({CodeMetricHelpers.METRIC_CC_ACRONYM}). 
+            Problematic: `{CodeElementKindHelpers.KIND_METHOD}`>20, `{CodeElementKindHelpers.KIND_TYPE}`>200
             """)]
         CyclomaticComplexity = 0x02,
 
         [Description(
            $"""
-            Maintainability index.
-            A code element with `{CodeMetricHelpers.METRIC_MI}` below 50 is considered problematic.
+            Maintainability index ({CodeMetricHelpers.METRIC_MI_ACRONYM})
+            Problematic: <50
             """)]
         MaintainabilityIndex = 0x04,
 
         [Description(
            $"""
-            Halstead volume.
-            A `{CodeElementKindHelpers.KIND_METHOD}` with `{CodeMetricHelpers.METRIC_HV}` above 600 or 
-            a `{CodeElementKindHelpers.KIND_TYPE}` with `{CodeMetricHelpers.METRIC_HV}` above 8000
-            is considered problematic.
+            Halstead ({CodeMetricHelpers.METRIC_HV_ACRONYM})
+            Problematic: `{CodeElementKindHelpers.KIND_METHOD}`>600, `{CodeElementKindHelpers.KIND_TYPE}`>8000
             """)]
         HalsteadVolume = 0x08,
 
-        [Description("Number of lines of comment.")]
+        [Description($"Lines of comment ({CodeMetricHelpers.METRIC_COMMENT_ACRONYM})")]
         NbLinesOfComment = 0x10,
 
         [Description(
            $"""
-            Percentage coverage.
-            A code element with `{CodeMetricHelpers.METRIC_PERCENT_COVERAGE}` below 90% is considered problematic.
+            Coverage percentage ({CodeMetricHelpers.METRIC_PERCENT_COVERAGE_ACRONYM})
+            Problematic: <90%
             """)]
         PercentageCoverage = 0x20,
 
-        [Description("All code metrics.")]
+        [Description("All metrics")]
         All = LinesOfCode | CyclomaticComplexity | MaintainabilityIndex | HalsteadVolume | NbLinesOfComment | PercentageCoverage,
 
-        [Description("No code metrics.")]
+        [Description("No metrics.")]
         None = 0
     }
 }

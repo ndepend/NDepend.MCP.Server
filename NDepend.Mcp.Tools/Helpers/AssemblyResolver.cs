@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Reflection;
+using System.Text;
 
 namespace NDepend.Mcp.Helpers {
 
@@ -18,10 +21,8 @@ namespace NDepend.Mcp.Helpers {
         private readonly string m_RelativePathToLib;
 
         public Assembly? AssemblyResolveHandler(object? sender, ResolveEventArgs args) {
-            Debug.Assert(args != null);
-
-            var assemblyName = new AssemblyName(args.Name);
-            Debug.Assert(assemblyName != null);
+            
+            AssemblyName assemblyName = new AssemblyName(args.Name);
 
             var assemblyNameString = assemblyName.Name;
             Debug.Assert(!string.IsNullOrEmpty(assemblyNameString));
@@ -43,9 +44,10 @@ namespace NDepend.Mcp.Helpers {
                 // Find the highest .NET version available in the NDepend redistributable
                 // It contains both assemblies, start with .NET 20.0 and go down till .NET 10.0
                 for (int i = 20; i >= 10; i--) {
-                    string relativePathToLibTmp = m_RelativePathToLib.Replace(@"\Lib", $@"\net{i}.0", StringComparison.OrdinalIgnoreCase);
+                    string replaceWith = $@"\net{i}.0";
+                    string relativePathToLibTmp = m_RelativePathToLib.ToLower().Replace(@"\lib", replaceWith); // ToLower() coz , StringComparison.OrdinalIgnoreCase not available in .NET Fx
                     string asmFilePathTmp = GetAsmFilePath(relativePathToLibTmp);
-                    if (File.Exists(asmFilePathTmp)) {
+                    if (System.IO.File.Exists(asmFilePathTmp)) {
                         relativePathToLib = relativePathToLibTmp;
                         break;
                     }
@@ -53,7 +55,7 @@ namespace NDepend.Mcp.Helpers {
             }
 
             var asmFilePath = GetAsmFilePath(relativePathToLib);
-            if (!File.Exists(asmFilePath)) { return null; }
+            if (!System.IO.File.Exists(asmFilePath)) { return null; }
 
             var assembly = Assembly.LoadFrom(asmFilePath);
             return assembly;

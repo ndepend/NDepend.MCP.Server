@@ -1,12 +1,12 @@
 ﻿namespace NDepend.Mcp.Tools.Common {
+
+    [Description("Specifies current or baseline snapshot")]
     public enum CurrentOrBaseline {
-        [Description("Get the result from the current analysis result.")]
+        [Description("Current snapshot")]
         Current = 0,
-
-        [Description("Get the result from the baseline analysis result.")]
+        [Description("Baseline snapshot")]
         Baseline = 1,
-
-        [Description("Default is Current.")]
+        [Description("Default=Current")]
         Default = Current
     }
 }

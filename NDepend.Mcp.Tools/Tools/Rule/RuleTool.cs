@@ -8,73 +8,45 @@ using PaginatedResult = NDepend.Mcp.Tools.Common.PaginatedResult;
 
 namespace NDepend.Mcp.Tools.Rule;
 
-
 [McpServerToolType]
 public static class RuleTools {
-
-    const int MAX_PAGE_SIZE = 10;
 
     internal const string TOOL_LIST_RULES_DETAILED_NAME = Constants.TOOL_NAME_PREFIX + "list-rules-detailed";
     internal const string TOOL_LIST_ALL_RULES_SUMMARY_NAME = Constants.TOOL_NAME_PREFIX + "list-all-rules-summary";
 
     internal const string TOOL_ARG_FILTER_AT_LEAST_NB_ISSUES = "filterAtLeastNbIssues";
     
-
     [McpServerTool(Name = TOOL_LIST_ALL_RULES_SUMMARY_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
      Description($"""
                  {Constants.PROMPT_CALL_INITIALIZE}
                  
-                 # LIST CODE RULES SUMMARY
+                 # Code Rules Summary
                  
-                 Returns a hierarchical summary of all NDepend Rules, Roslyn Analyzers and Resharper Code Inspections in the current project.
+                 Returns hierarchical summary of all NDepend Rules, Roslyn Analyzers, and Resharper Code Inspections.
                  
-                 Structure:
-                 - Rules are grouped by parent categories (hierarchical/recursive structure)
-                 - Each rule includes: name, identifier, criticality, and issue count
+                 ## Returns
                  
-                 Note: This tool returns all results without pagination. The complete rule set fits within the LLM context window.
+                 Rules grouped by parent categories with name, ID, criticality, and issue count.
                  
-                 **IMPORTANT**:
+                 **Note**: 
+                 - Returns complete rule set (no pagination). 
+                 - Does NOT return issues, use the `{IssueTools.TOOL_LIST_ISSUES_NAME}` tool for that.
                  
-                 This tool does not return the issues raised by a rule.
-                 To retrieve rule issues, use the tool `{IssueTools.TOOL_LIST_ISSUES_NAME}`.
+                 ## Use-Cases
                  
-                 # USE-CASES
+                 **IMPORTANT**: Call this first to discover valid `filterRuleCategories` and `filterRuleIds` values for other tools.
                  
-                 Call this tool first to discover available rules in the current project analysis before calling `{TOOL_LIST_RULES_DETAILED_NAME}` or `{IssueTools.TOOL_LIST_ISSUES_NAME}`.
-                 Use the results to identify valid values for the `filterRuleCategories` and `filterRuleIds` filter parameters in subsequent tool calls.
-                 
-                 This tool is also appropriate for any rule-related request where the rule description or fix guidance is not needed.
-                 
-                 **Discover Available Code Quality Rules:**
-                 - "List all NDepend rules in this project."
-                 - "What code quality rules are available?"
-                 - "Show me the first 50 rules defined in the analysis."
-                 - "Which rule has at least 10 issues?"
-                 
-                 **Filter Rules by Category or Metric Type:**
-                 - "Show rules related to cyclomatic complexity."
-                 - "List only architecture-related rules."
-                 - "Give me all dependency-related rules."
-                 
-                 **Audit and Governance:**
-                 - "Which architectural rules are enforced in this project?"
-                 - "List all critical rules currently enabled."
-                 - "Review rule coverage for governance purposes."
+                 - Discovery: "List all rules", "What rules are available?", "Which rule has 10+ issues?"
+                 - Categories: "Show complexity rules", "List architecture/dependency rules"
+                 - Audit: "Which rules are enforced?", "List critical rules", "Review rule coverage"
                  """)]
     public static async Task<RuleCategoryInfo[]> ListAllRulesSummaryTool(
                 INDependService service,
                 ILogger<RuleToolsLog> logger,
 
-                [Description(
-                    """
-                    Filters only rules that have at least the specified number of issues.
-                    Set to 0 to include all rules.
-                    Set to 1 to include all rules violated (e.g. with issues).
-                    """)]
+                [Description("Minimum issue per rule count threshold. 0=all rules, 1=violated rules only")]
                 int filterAtLeastNbIssues,
 
-                [Description("A cancellation token for interrupting and canceling the operation.")]
                 CancellationToken cancellationToken) {
 
         logger.LogInformation(
@@ -170,117 +142,85 @@ public static class RuleTools {
 
 
 
-
+    const string MAX_PAGE_SIZE = "10";
     [McpServerTool(Name = TOOL_LIST_RULES_DETAILED_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
      Description($"""
                  {Constants.PROMPT_CALL_INITIALIZE}
                  
-                 # LIST CODE RULES WITH DESCRIPTION AND FIX GUIDANCE COLLECTION
+                 # List Some Code Rules with Description and Fix Guidance
                  
-                 Return a paginated list of NDepend rules available on the current project with their descriptions and fix guidances (how-to-fix).
-                 Use the filter parameters to avoid having too many issues returned.
+                 Returns paginated list of NDepend rules with descriptions and how-to-fix guidance.
                  
-                 If the user wants to filter rules by a specific category or type of rule, first call `{TOOL_LIST_ALL_RULES_SUMMARY_NAME}` to retrieve the available categories and rule IDs that have issues.
-                 With this information, you can accurately set the `filterRuleCategories` and `rulesId` filters.
+                 **Note**: Call `{TOOL_LIST_ALL_RULES_SUMMARY_NAME}` first to find valid `filterRuleCategories` and `rulesId` values.
                  
-                 **IMPORTANT**:
+                 ## Use-Cases
                  
-                 This tool does not return the issues raised by a rule.
-                 To retrieve rule issues, use the tool `{IssueTools.TOOL_LIST_ISSUES_NAME}`.  
-                 
-                 # PURPOSE AND USE-CASES
-                 
-                 **Primary use cases:**
-                 - Understanding what a specific rule checks for
-                 - Learning how to fix violations of a rule
-                 - Exploring rule documentation before investigating issues
-                 - Getting comprehensive rule details after identifying rules of interest
-                 
-                 **When to use this tool:**
-                 - User asks "what does rule X check?" or "how do I fix rule Y?"
-                 - User wants to understand available rules in a specific category
-                 - User needs fix guidance for one or more rules
-                 - After calling `{TOOL_LIST_ALL_RULES_SUMMARY_NAME}` to get detailed information about identified rules
-                 
-                 **When NOT to use this tool:**
-                 - User wants to see actual issues/violations (use `{IssueTools.TOOL_LIST_ISSUES_NAME}` instead)
-                 - User only needs rule names and counts (use `{TOOL_LIST_ALL_RULES_SUMMARY_NAME}` instead)
-                 - User wants to analyze or fix specific code issues (use `{IssueTools.TOOL_GET_ISSUE_DETAILS_TO_FIX_IT_NAME}` instead)
+                 - "What does rule X check?", "How do I fix rule Y?"
+                 - User needs fix guidance or rule documentation
+                 - After calling `list_rules_summary` to get details on identified rules
                  """)]
     public static async Task<ListRulesPaginatedResult> ListRulesDetailedTool(
                 INDependService service,
                 ILogger<RuleToolsLog> logger,
 
-                [Description(
-                    "An opaque token representing the pagination position after the last returned result. Set to null to start from the beginning.")]
-                string? cursor,
+                [Description(PaginatedResult.PAGINATION_CURSOR_DESC)]
+                int cursor,
 
-                [Description(
-                    "Maximum number of rules to include per page. Must not exceed 10 to prevent LLM prompt overflow.")]
+                [Description($"Max number of rules per page (≤ {MAX_PAGE_SIZE}) to avoid LLM prompt overflow.")]
                 int pageSize,
 
                 [Description(
                     $"""
-                     Filters by rule provider that can be either `{RuleProviderHelpers.RULE_PROVIDER_NDEPEND}`, `{RuleProviderHelpers.RULE_PROVIDER_ROSLYN_ANALYZERS}` or `{RuleProviderHelpers.RULE_PROVIDER_RESHARPER}`.
-                     Set to null to include all providers.
+                     Filter by rule provider: `{RuleProviderHelpers.RULE_PROVIDER_NDEPEND}`, `{RuleProviderHelpers.RULE_PROVIDER_ROSLYN_ANALYZERS}` or `{RuleProviderHelpers.RULE_PROVIDER_RESHARPER}`.
+                     Null=all providers
                      """)]
                 string? filterRuleProvider,
 
                 [Description(
                     $"""
-                     Filters rules by rule categories. 
-                     Matches are case-insensitive and use substring search.
-                     It is enough that a rule category matches one of the provided categories to be included.
-                     Leave empty to include all categories.
-                     To see available categories, first call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}`.
+                     Filter by rule categories (case-insensitive substring)
+                     Empty=all. 
+                     Call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}` first to see available categories
                      """)]
                 string[] filterRuleCategories,
 
                 [Description(
                     $"""
-                     Filters issues by parent rule ID. Leave empty to include all rules.
-                     Matches are case-insensitive and use substring search.
-                     Leave empty to include all rule IDs.
-                     To find available IDs of rules, first call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}`.
+                     Filter by rule IDs (case-insensitive substring)
+                     Empty=all
+                     Call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}` first to find possible IDs
                      """)]
                 string[] filterRulesId,
 
                 [Description(
-                    "Filters only critical rules. Set to false to include all rules.")]
+                    "True=critical rules only, False=all")]
                 bool filterCriticalOnly,
 
                 [Description(
                     """
-                    Filters only rules that have at least the specified number of issues.
-                    Set to 0 to include all rules.
-                    Set to 1 to include all rules violated (e.g. with issues).
+                    Minimum issue count. 0=all rules, 1=violated rules only
                     """)]
                 int filterAtLeastNbIssues,
 
-                [Description("A cancellation token for interrupting and canceling the operation.")]
                 CancellationToken cancellationToken) {
 
         logger.LogInformation(
             $"""
                {LogHelpers.TOOL_LOG_SEPARATOR}
                Invoking {TOOL_LIST_RULES_DETAILED_NAME} with arguments: 
-                 -cursor=`{cursor ?? "0"}`
-                 -pageSize=`{pageSize}`
-                 -filterRuleProvider=`{filterRuleProvider ?? "<any>"}
-                 -filterRuleCategory=`{filterRuleCategories.Aggregate("', '")}`
-                 -filterRulesId=`{filterRulesId.Aggregate("', '")}`
-                 -filterCriticalOnly=`{filterCriticalOnly}`
-                 -filterAtLeastNbIssues=`{filterAtLeastNbIssues}`
+                 -cursor= `{cursor}`
+                 -pageSize= `{pageSize}`
+                 -filterRuleProvider= `{filterRuleProvider ?? "<any>"}
+                 -filterRuleCategory= `{filterRuleCategories.Aggregate("', '")}`
+                 -filterRulesId= `{filterRulesId.Aggregate("', '")}`
+                 -filterCriticalOnly= `{filterCriticalOnly}`
+                 -filterAtLeastNbIssues= `{filterAtLeastNbIssues}`
                """);
         if (!service.IsInitialized(out Session session)) {
             logger.LogErrorAndThrow(Constants.PROMPT_CALL_INITIALIZE);
         }
 
         return await Task.Run(() => {
-            if (pageSize > MAX_PAGE_SIZE) {
-                pageSize = MAX_PAGE_SIZE;
-                logger.LogInformation($"pageSize parameter exceeded maximum of {MAX_PAGE_SIZE}. It has been set to {MAX_PAGE_SIZE}.");
-            }
             var issuesSet = session.IssuesSetDiff.NewerIssuesSet;
 
             var allRules = issuesSet.AllRules.ToList();
@@ -332,7 +272,7 @@ public static class RuleTools {
                     };
                 }).ToList();
 
-            var paginatedResult = PaginatedResult.Build(logger, rules, cursor, pageSize, out var paginatedRulesInfo);
+            var paginatedResult = PaginatedResult.Build(logger, rules, cursor, pageSize, MAX_PAGE_SIZE, out var paginatedRulesInfo);
             return new ListRulesPaginatedResult(paginatedRulesInfo, paginatedResult);
 
         }, cancellationToken);

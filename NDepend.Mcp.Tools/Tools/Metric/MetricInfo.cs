@@ -5,11 +5,11 @@ namespace NDepend.Mcp.Tools.Metric {
 
     [Description(
       $"""
-      Represents code metrics information for an '${CodeElementKindHelpers.KIND_ASSEMBLY}`, a `{CodeElementKindHelpers.KIND_NAMESPACE}`, a `{CodeElementKindHelpers.KIND_TYPE}` or a `{CodeElementKindHelpers.KIND_METHOD}`.")]
+      Code metrics for an '${CodeElementKindHelpers.KIND_ASSEMBLY}`, a `{CodeElementKindHelpers.KIND_NAMESPACE}`, a `{CodeElementKindHelpers.KIND_TYPE}` or a `{CodeElementKindHelpers.KIND_METHOD}`.
       """)]
     public sealed class MetricInfo {
 
-        [Description("Create a new instance of the MetricInfo class with the specified code element and its code metrics.")]
+        [Description("Creates MetricInfo with code element and metrics")]
         public MetricInfo(ICodeContainer codeContainer, CodeMetric metrics, string? sourceFileName = null) {
 
             this.CodeElement = new CodeElementInfo(codeContainer);
@@ -34,21 +34,20 @@ namespace NDepend.Mcp.Tools.Metric {
             }
         }
 
-        [Description("The code element for which metrics were collected.")]
+        [Description("Code element")]
         public CodeElementInfo CodeElement { get; set; }
-        
 
-        [Description("The number of lines of code for the code element, if requested.")]
+        [Description("Lines of code, if requested")]
         public ulong? LinesOfCode { get; set; }
-        [Description("The cyclomatic complexity for the code element, if requested.")]
+        [Description("Cyclomatic complexity, if requested")]
         public ulong? CyclomaticComplexity { get; set; }
-        [Description("The maintainability index for the code element, if requested.")]
+        [Description("Maintainability index, if requested")]
         public ulong? MaintainabilityIndex { get; set; }
-        [Description("The Halstead volume for the code element, if requested.")]
+        [Description("Halstead volume, if requested")]
         public ulong? HalsteadVolume { get; set; }
-        [Description("The number of lines of comment for the code element, if requested.")]
+        [Description("Lines of comment, if requested")]
         public ulong? NbLinesOfComment { get; set; }
-        [Description("The percentage coverage for the code element, if requested.")]
+        [Description("Coverage percentage, if requested")]
         public ulong? PercentageCoverage { get; set; }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using PaginatedResult = NDepend.Mcp.Tools.Common.PaginatedResult;
 
 namespace NDepend.Mcp.Tools.Metric {
-    [Description($"This class enables pagination of the server responses returned by calls to the MCP tool `{MetricTools.TOOL_SEARCH_CODE_METRICS_NAME}`.")]
+    [Description($"Enables pagination for `{MetricTools.TOOL_SEARCH_CODE_METRICS_NAME}` MCP tool responses.")]
     public sealed class ListMetricsPaginatedResult : PaginatedResult {
 
         public ListMetricsPaginatedResult(
@@ -10,7 +10,7 @@ namespace NDepend.Mcp.Tools.Metric {
             Metrics = metricsPaginated;
         }
 
-        [Description("Gets or sets the sequence of metrics paginated.")]
+        [Description("Sequence of paginated metrics")]
         public IEnumerable<MetricInfo> Metrics { get; set; } = [];
     }
 }

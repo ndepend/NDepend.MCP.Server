@@ -3,8 +3,8 @@
 namespace NDepend.Mcp.Tools.Common;
 
 internal static class CurrentOrBaselineHelpers {
-    internal const string CURRENT = "Current";
-    internal const string BASELINE = "Baseline";
+    internal const string CURRENT = "current";
+    internal const string BASELINE = "baseline";
 
     internal static CurrentOrBaseline GetCurrentOrBaselineVal<C>(ILogger<C> logger, string str) {
         return str switch {

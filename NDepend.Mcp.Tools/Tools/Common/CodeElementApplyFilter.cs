@@ -6,6 +6,49 @@ using NDepend.Mcp.Services;
 namespace NDepend.Mcp.Tools.Common {
     internal static class CodeElementApplyFilter {
 
+        internal const string CHANGE_STATUS_ENUM =
+            $"""
+            `{CodeChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`, `{CodeChangeStatusSinceBaselineHelpers.STATUS_NEW}`, `{CodeChangeStatusSinceBaselineHelpers.STATUS_MODIFIED}`, `{CodeChangeStatusSinceBaselineHelpers.STATUS_UNCHANGED}` or `{CodeChangeStatusSinceBaselineHelpers.STATUS_REMOVED}`.
+            Null defaults to `{CodeChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`. 
+            """;
+
+        internal const string FROM_CURRENT_OR_BASELINE_ENUM =
+            $"""
+            from the current analysis `{CurrentOrBaselineHelpers.CURRENT}` by default, or from the baseline `{CurrentOrBaselineHelpers.BASELINE}`.
+            """;
+
+        internal const string FILTER_SIMPLE_NAME_DESC =
+            """
+            A substring to filter by code element simple name:
+            - Methods: name only, no parameters/parentheses/generic
+            - Types: type name only, no namespace/generic
+            - Namespaces: last (rightmost) part
+            """;
+
+        internal const string FILTER_PARENT_NAME_DESC =
+            """ 
+            A substring to filter by parent code element name:
+            - Methods: parent type
+            - Types: parent namespace
+            - Namespaces: parent project
+            """;
+
+        internal const string FILTER_FILE_NAME_DESC =
+             """
+             Filter by source file name with extension (e.g., .cs).
+             If multiple files share the name, all are included.
+             Set to null to search across all source files.
+             """;
+
+        internal const string FILTER_PARENT_PROJECT_NAME_DESC = "Filter by parent project name.";
+
+        internal const string FILTER_ELEM_KIND_ENUM =
+             $"""
+              Possible values are `{CodeElementKindHelpers.KIND_ALL}`, '${CodeElementKindHelpers.KIND_ASSEMBLY}`, `{CodeElementKindHelpers.KIND_NAMESPACE}`, `{CodeElementKindHelpers.KIND_TYPE}` and `{CodeElementKindHelpers.KIND_METHOD}`.
+              """;
+
+  
+
         internal static ICodeBaseView GetApplicationCurrentOrBaseline<T>(
                 this Session session,
                 ILogger<T> logger,

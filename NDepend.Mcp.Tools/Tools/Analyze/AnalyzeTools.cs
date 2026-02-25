@@ -3,6 +3,7 @@ using NDepend.Analysis;
 using NDepend.Mcp.Services;
 using NDepend.Mcp.Tools.Common;
 using NDepend.Mcp.Helpers;
+using NDepend.Mcp.Tools.Initialize;
 
 namespace NDepend.Mcp.Tools.Analyze;
 
@@ -14,25 +15,18 @@ public static class AnalyzeTools {
     [McpServerTool(Name = TOOL_RUN_ANALYSIS_NAME, Idempotent = false, Destructive = false, OpenWorld = false, ReadOnly = true),
      Description($"""
                  {Constants.PROMPT_CALL_INITIALIZE}
-                  
-                  **Purpose:**
-                 Executes NDepend analysis on the initialized solution to refresh and update analysis results based on the current codebase state.
                  
-                 **When to use this tool:**
-                 - User explicitly requests: "run analysis", "analyze the code", "refresh the results", "update the results"
+                 **Runs NDepend analysis** on the initialized solution to reflect the latest code changes.
+                 
+                 ## Use-Cases
+                 - User requests: "run analysis", "analyze the code", "refresh/update results"
                  - Post-fix verification: "I fixed the issues, check again", "verify my changes"
-                 - After code changes: "I updated the code, run analysis", "reanalyze after my modifications"
-                 - After recompilation when user wants updated metrics
+                 - After code changes or recompilation when updated metrics are needed
                  
-                 **Prerequisites - MUST complete before calling:**
-                 **CRITICAL:** The solution MUST be rebuilt in DEBUG mode first, or analysis will reflect stale/outdated code.
+                 ## Workflow:
                  
-                 **Recommended workflow:**
-                 1. **Verify/trigger rebuild:** Ensure solution is rebuilt in DEBUG mode
-                    - If uncertain, rebuild the solution before proceeding
-                 2. **Run analysis:** Call `{TOOL_RUN_ANALYSIS_NAME}`
-                 3. **Review results:** Use appropriate query tools to examine updated findings
-                 4. **Report to user:** Summarize changes, improvements, or remaining issues
+                 1. **CRITICAL:** Solution MUST be rebuilt in DEBUG mode first, or results will reflect stale code.
+                 2. Call `{TOOL_RUN_ANALYSIS_NAME}`
                  """)]
     public static async Task<bool> RunAnalysisTool(
             INDependService service,
@@ -40,7 +34,7 @@ public static class AnalyzeTools {
 
             McpServer server,
             RequestContext<CallToolRequestParams> context,
-            [Description("A cancellation token for interrupting and canceling the operation.")]
+            
             CancellationToken cancellationToken) {
 
         logger.LogInformation(
@@ -58,7 +52,7 @@ public static class AnalyzeTools {
         return await Task.Run(() => {
             var project = session.Project;
             IAnalysisResult analysisResult = project.RunAnalysisWithLog(logger, service.StopWatchingForNewAnalysisResult, reportProgressProc);
-            service.InitializeFromAnalysisResult(analysisResult, logger, reportProgressProc);
+            service.InitializeFromAnalysisResult(analysisResult, logger, reportProgressProc, out _);
             return true;
         }, cancellationToken);
     }
@@ -70,26 +64,28 @@ public static class AnalyzeTools {
      Description($"""
                   {Constants.PROMPT_CALL_INITIALIZE}
                   
-                  **Purpose:**
-                  Executes NDepend analysis and generates an interactive HTML report for data visualization and exploration.
+                  Runs NDepend analysis and generates an interactive HTML report for visualization.
                   
-                  **When to use this tool:**
-                  - User explicitly requests: "show me a web report", "generate HTML report", "visualize the analysis"
-                  - User wants interactive exploration: "I want to explore the results", "show me an interactive view"
-                  - User asks for visual/graphical analysis outputs (NOT plain text summaries)
+                  ## When to Use
                   
-                  **Required post-execution steps:**
-                  1. Extract the HTML report file path from the tool's response
-                  2. IMMEDIATELY open the HTML file in a web view/browser to display results
-                  3. Inform the user that the interactive report is now available for viewing
+                  - User requests: "show me a web report", "generate HTML report", "visualize the analysis"
+                  - User wants interactive exploration of results
+                  - Visual/graphical output needed (not plain text summaries)
                   
-                  **Returns:** A message confirming report generation and providing the absolute file path to the HTML report.
+                  ## Post-Execution Steps
                   
-                  **CRITICAL:** Never return just the file path string to the user. Always render/display the HTML content.
+                  - Extract the HTML report file path from the response
+                  - Immediately open the HTML file in a web view/browser
+                  - Inform the user the interactive report is ready
                   
-                  **Important notes:**
+                  ## Returns
+                  
+                  - Confirmation message with the absolute file path to the generated HTML report.
+                  
+                  ## Notes
+                  
+                  **CRITICAL:** Never return just the file path — always render/display the HTML content
                   - This tool automatically refreshes analysis data (equivalent to running `{TOOL_RUN_ANALYSIS_NAME}`)
-                  - If user only needs text-based results, use analysis query tools instead to avoid unnecessary HTML generation
                   - The HTML report may take a few moments to generate for large codebases
                   """)]
     public static async Task<string> RunAnalysisAndBuildReportTool(
@@ -98,7 +94,7 @@ public static class AnalyzeTools {
 
             McpServer server,
             RequestContext<CallToolRequestParams> context,
-            [Description("A cancellation token for interrupting and canceling the operation.")]
+
             CancellationToken cancellationToken) {
 
         logger.LogInformation(
@@ -121,61 +117,11 @@ $@"Report generated successfully!
 View it here: ""file:///{analysisResult.AnalysisResultRef.ReportFilePath.ToString()!}""";
             logger.LogInformation(result);
 
-            service.InitializeFromAnalysisResult(analysisResult, logger, reportProgressProc);
+            service.InitializeFromAnalysisResult(analysisResult, logger, reportProgressProc, out _);
             return result;
         }, cancellationToken);
     }
 
-
-    internal const string TOOL_GET_ANALYSIS_RESULT_INFO_NAME = Constants.TOOL_NAME_PREFIX + "get-analysis-result-info";
-
-    [McpServerTool(Name = TOOL_GET_ANALYSIS_RESULT_INFO_NAME, Idempotent = true, Destructive = false, OpenWorld = false, ReadOnly = true),
-     Description($"""
-                  {Constants.PROMPT_CALL_INITIALIZE}
-                  
-                  **Purpose:**
-                  Retrieves metadata about the current analysis result and baseline result, including dates, project names, and file paths.
-                  
-                  **When to use this tool:**
-                  - User asks: "when was the analysis run?", "what project is being analyzed?", "show analysis details"
-                  - User wants to know: "what's the baseline date?", "what are the current analysis dates?"
-                  - Debugging or verification: "which analysis version am I looking at?", "what's the project path?"
-                  
-                  **Returns:**
-                  Information about both current and baseline analysis results including:
-                  - Analysis result date and time
-                  - Project name
-                  - Project file path
-                  - Baseline analysis result date and time
-                  
-                  **Note:** This tool does not run analysis, only retrieves information about existing loaded results.
-                  """)]
-    public static async Task<AnalysisResultInfo> GetAnalysisResultInfoTool(
-            INDependService service,
-            ILogger<AnalyzeToolsLog> logger,
-            [Description("A cancellation token for interrupting and canceling the operation.")]
-            CancellationToken cancellationToken) {
-
-        logger.LogInformation(
-            $"""
-             {LogHelpers.TOOL_LOG_SEPARATOR}
-             Invoking {TOOL_GET_ANALYSIS_RESULT_INFO_NAME}
-             """);
-        if (!service.IsInitialized(out Session session)) {
-            logger.LogErrorAndThrow(Constants.PROMPT_CALL_INITIALIZE);
-        }
-        return await Task.Run(() => {
-            var result = session.AnalysisResult;
-            var baseline = session.BaselineResult;
-
-            return new AnalysisResultInfo(
-                result.AnalysisResultRef.Date,
-                result.AnalysisResultRef.Project.Properties.Name,
-                result.AnalysisResultRef.Project.Properties.FilePath.ToString()!,
-                baseline.AnalysisResultRef.Date
-            );
-        }, cancellationToken);
-    }
 
 }
 

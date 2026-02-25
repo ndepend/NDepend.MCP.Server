@@ -13,7 +13,7 @@ public class NDependService : INDependService {
         return m_Session != null;
     }
 
-    public bool InitializeFromProject(string projectFilePathStr, ILogger logger, Action<int>? reportProgressProc = null) {
+    public bool InitializeFromProject(string projectFilePathStr, ILogger logger, Action<int>? reportProgressProc, out Session session) {
         StopWatchingForNewAnalysisResult();
         logger.LogInformation($"Initializing from the NDepend project file `{projectFilePathStr}`.");
 
@@ -27,7 +27,6 @@ public class NDependService : INDependService {
         var projectManager = new NDependServicesProvider().ProjectManager;
         IProject? project = projectManager.LoadProject(projectFilePath);
 
-        
         IAnalysisResult result;
         IAnalysisResult baselineResult; // If no baseline result, define it as the current result (which will mean no diff)
 
@@ -56,16 +55,16 @@ public class NDependService : INDependService {
             result = loadTask.Result;
         }
 
-        CreateNewSessionWhichStartComputeIssuesAsync(logger, result, baselineResult);
+        session = CreateNewSessionWhichStartComputeIssuesAsync(logger, result, baselineResult);
         logger.LogInformation("Issues computed and initialization ok.");
         return true;
     }
 
-    public bool InitializeFromAnalysisResult(IAnalysisResult analysisResult, ILogger logger, Action<int>? reportProgressProc = null) {
+    public bool InitializeFromAnalysisResult(IAnalysisResult analysisResult, ILogger logger, Action<int>? reportProgressProc, out Session session) {
         logger.LogInformation($"Initialize from the analysis result obtained on {analysisResult.AnalysisResultRef.Date.GetString()}.");
         IAnalysisResult baselineResult = analysisResult; // If no baseline result, define it as the current result (which will mean no diff)
-        if (IsInitialized(out Session session)) {
-            var ar = session.AnalysisResult!;
+        if (IsInitialized(out Session sessionTmp)) {
+            var ar = sessionTmp.AnalysisResult!;
             logger.LogInformation($"Baseline is the previous analysis result obtained on {ar.AnalysisResultRef.Date.GetString()}.");
             baselineResult = ar;
 
@@ -73,13 +72,13 @@ public class NDependService : INDependService {
             logger.LogInformation($"Loading the baseline analysis result obtained on {baselineRef.Date.GetString()}.");
             baselineResult = baselineRef.Load();
         }
-        CreateNewSessionWhichStartComputeIssuesAsync(logger, analysisResult, baselineResult);
+        session = CreateNewSessionWhichStartComputeIssuesAsync(logger, analysisResult, baselineResult);
         logger.LogInformation("Issues computed and initialization ok.");
         return true;
     }
 
 
-    private void CreateNewSessionWhichStartComputeIssuesAsync(
+    private Session CreateNewSessionWhichStartComputeIssuesAsync(
             ILogger logger,
             IAnalysisResult result,
             IAnalysisResult baselineResult) {
@@ -98,6 +97,7 @@ public class NDependService : INDependService {
             m_Session.Dispose();
         }
         m_Session = session;
+        return session;
     }
 
 
@@ -113,7 +113,7 @@ public class NDependService : INDependService {
              New analysis result detected `{@params.NewNdarFilePath.ToString()}` obtained at {resultRef.Date}. Load it!
              """);
         IAnalysisResult analysisResult = resultRef.Load();
-        InitializeFromAnalysisResult(analysisResult, @params.Logger);
+        InitializeFromAnalysisResult(analysisResult, @params.Logger, _ => { }, out _);
     }
 
     // Stop watching for new analysis result 

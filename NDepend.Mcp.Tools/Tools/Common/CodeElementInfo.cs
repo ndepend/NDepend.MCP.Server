@@ -2,10 +2,10 @@
 using NDepend.Mcp.Helpers;
 
 namespace NDepend.Mcp.Tools.Common {
-    [Description("Represents a code element with its kind, full name, and source declaration information.")]
+    [Description("Code element with kind, full name, and source info.")]
     public sealed class CodeElementInfo {
 
-        [Description("Create a new instance of the CodeElementInfo class with the specified code element.")]
+        [Description("Initialize a new CodeElementInfo instance.")]
         public CodeElementInfo(ICodeElement codeElement, string? sourceFileName = null) {
 
             this.CodeElementKind = codeElement.GetKind();
@@ -25,16 +25,18 @@ namespace NDepend.Mcp.Tools.Common {
         public string CodeElementKind { get; set; }
 
         [Description(
-            $"""
-             The full name of the code element.
-             {CodeElementKindHelpers.FULL_NAME_EXPLANATION}
+             """
+             Full name of the code element:
+             - Methods: 'namespace.type.method<T>(param types)'
+             - Types: 'namespace.type'
+             - Namespaces: full namespace path
              """)]
         public string CodeElementFullName { get; set; }
 
-        [Description("The file path where the code element is declared, if available.")]
+        [Description("File path of the code element, if available.")]
         public string? DeclarationSourceFilePath { get; set; }
 
-        [Description("The line number in the source file where the code element is declared, if available.")]
+        [Description("Line number where the code element is declared, if available.")]
         public uint? DeclarationSourceFileLine { get; set; }
 
 

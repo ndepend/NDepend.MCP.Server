@@ -1,18 +1,14 @@
 ﻿namespace NDepend.Mcp.Tools.Issue {
-    [Description("Specifies the change status of an issue when comparing the current snapshot to the baseline snapshot.")]
+    [Description("Issue change status vs baseline")]
     [Flags]
     public enum IssueChangeStatusSinceBaseline {
-
-        [Description("The issue is not in the baseline, it has been recently introduced.")]
+        [Description("New issue")]
         New = 0x01,
-
-        [Description("The issue was already in the baseline and is still unresolved.")]
+        [Description("Still unresolved")]
         Unresolved = 0x02,
-
-        [Description("The issue is in the baseline and has been fixed.")]
+        [Description("Fixed")]
         Fixed = 0x04,
-
-        [Description("Default is issue found in the current snapshot.")]
+        [Description("Default (new or unresolved)")]
         Default = New | Unresolved
     }
 }

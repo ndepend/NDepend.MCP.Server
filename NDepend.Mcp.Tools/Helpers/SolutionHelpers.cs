@@ -17,9 +17,11 @@ namespace NDepend.Mcp.Helpers {
         //   "Path\File.sln"
         //   "C:\WrongPath\File.sln"
         //   "WrongFile.sln"
+        //   "Dir\ProjectFileName.csproj"
+        //   "ProjectFileName.csproj"
         // Might need to find the solution file path in the VS MRU list by matching only the solution file name without path and without extension
         //
-        internal static bool TryGetValidSolutionFilePath(
+        internal static bool TryGetExistingSolutionFilePath(
                 string solutionFilePathStr, 
                 ILogger<InitializeToolsLog> logger, 
                 out IAbsoluteFilePath solutionFilePath,
@@ -28,14 +30,21 @@ namespace NDepend.Mcp.Helpers {
             mruSlnFilePaths = GetMRUSlnFilePaths();
 
             if (!solutionFilePathStr.TryGetAbsoluteFilePath(out solutionFilePath)) {
-                if (!TryGetMRUSlnFilePathFromMalformedSlnFilePath(
-                        solutionFilePathStr, mruSlnFilePaths, 
-                        out IAbsoluteFilePath? tmp)) {
+                if (!TryGetMRUSlnFilePathFromCsproj(
+                        solutionFilePathStr, 
+                        mruSlnFilePaths,
+                        logger,
+                        out IAbsoluteFilePath? slnFound) &&
+                    !TryGetMRUSlnFilePathFromMalformedSlnFilePath(
+                        solutionFilePathStr, 
+                        mruSlnFilePaths,
+                        logger,
+                        out slnFound)) {
                     logger.LogError(
                         $"The provided solution file path `{solutionFilePathStr}` is not a valid absolute file path (including the drive letter).");
                     return false;
                 }
-                solutionFilePath = tmp!;
+                solutionFilePath = slnFound!;
             }
 
             string slnExt = solutionFilePath.FileExtension;
@@ -53,8 +62,12 @@ namespace NDepend.Mcp.Helpers {
                 if (solutionFilePathTyped.Exists) {
                     solutionFilePath = solutionFilePathTyped;
                     //isSlnxExt = !isSlnxExt;
-                } else if (!TryGetMRUSlnFilePathFromMalformedSlnFilePath(solutionFilePath.FileNameWithoutExtension, mruSlnFilePaths, out var tmp)) {
-                    solutionFilePath = tmp!;
+                } else if (!TryGetMRUSlnFilePathFromMalformedSlnFilePath(
+                               solutionFilePath.FileNameWithoutExtension, 
+                               mruSlnFilePaths, 
+                               logger, 
+                               out var slnFound)) {
+                    solutionFilePath = slnFound!;
                 } else {
                     logger.LogError($"The provided solution file path `{solutionFilePathStr}` does not exist.");
                     return false;
@@ -64,15 +77,56 @@ namespace NDepend.Mcp.Helpers {
             return true;
         }
 
+        private static bool TryGetMRUSlnFilePathFromCsproj(
+               string csprojPathStr,
+               List<IAbsoluteFilePath> mruSlnFilePaths,
+               ILogger<InitializeToolsLog> logger,
+               out IAbsoluteFilePath? solutionFilePathTyped) {
 
+            // Sometime Copilot provides a .csproj file path like "dir\FileName.csproj" instead of a solution file path
+            solutionFilePathTyped = null;
+            if (!csprojPathStr.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)) {
+                return false;
+            }
+
+            // Search for a MRU solution that contains the "dir\FileName.csproj"
+            IDictionary<IAbsoluteFilePath, string> dico = new Dictionary<IAbsoluteFilePath, string>();
+            foreach(IAbsoluteFilePath slnPath in mruSlnFilePaths) {
+                if(!slnPath.Exists) { continue; }
+                string slnFileContent = "";
+                try {
+                    slnFileContent = File.ReadAllText(slnPath.ToString()!);
+                } catch {}
+                
+                if(slnFileContent.Contains(csprojPathStr, StringComparison.OrdinalIgnoreCase)) {
+                    logger.LogInformation($"Found `{csprojPathStr}` in MRU solution `{slnPath}`");
+                    solutionFilePathTyped = slnPath;
+                    return true;
+                }
+                dico.Add(slnPath, slnFileContent);
+            }
+
+            // Then Search for a MRU solution that contains the "FileName.csproj"
+            string csprojFileName = GetFileName(csprojPathStr);
+            foreach(var pair in dico) {
+                if (pair.Value.Contains(csprojFileName, StringComparison.OrdinalIgnoreCase)) {
+                    logger.LogInformation($"Found `{csprojFileName}` in MRU solution `{pair.Key}`");
+                    solutionFilePathTyped = pair.Key;
+                    return true;
+                }
+            }
+            return false;
+        }
 
 
 
         private static bool TryGetMRUSlnFilePathFromMalformedSlnFilePath(
-                string malformed, List<IAbsoluteFilePath> mruSlnFilePaths, out IAbsoluteFilePath? solutionFilePathTyped) {
+                string malformed, 
+                List<IAbsoluteFilePath> mruSlnFilePaths,
+                ILogger<InitializeToolsLog> logger,
+                out IAbsoluteFilePath? solutionFilePathTyped) {
             // Extract only the solution file name without path and without extension
-            int indexSep = malformed.LastIndexOfAny(['\\', '/']);
-            string fileName = indexSep > 0 ? malformed.Substring(indexSep) : malformed;
+            string fileName = GetFileName(malformed);
 
             // Remove extension if any, the agent sometime provide the solution file name with the extension, but sometime without extension
             foreach (var ext in new [] { ".sln", ".slnx", ".csproj", ".vbproj", ".proj" }) {
@@ -81,28 +135,42 @@ namespace NDepend.Mcp.Helpers {
                     break;
                 }
             }
-            return TryGetMRUSlnFilePathFromSlnName(fileName, mruSlnFilePaths, out solutionFilePathTyped) ||
+            return TryGetMRUSlnFilePathFromSlnName(fileName, mruSlnFilePaths, logger, out solutionFilePathTyped) ||
                    // Sometime Copilot provide PartialSolutionName only!
-                   TryGetMRUSlnFilePathWhichContainSlnName(fileName, mruSlnFilePaths, out solutionFilePathTyped);
+                   TryGetMRUSlnFilePathWhichContainSlnName(fileName, mruSlnFilePaths, logger, out solutionFilePathTyped);
+        }
+
+        private static string GetFileName(string filePath) {
+            int indexSep = filePath.LastIndexOfAny(['\\', '/']);
+            string fileName = indexSep > 0 ? filePath.Substring(indexSep) : filePath;
+            return fileName;
         }
 
         private static bool TryGetMRUSlnFilePathFromSlnName(
                 string solutionFileNameWithNoExtension, 
-                List<IAbsoluteFilePath> mruSlnFilePaths, 
+                List<IAbsoluteFilePath> mruSlnFilePaths,
+                ILogger<InitializeToolsLog> logger,
                 out IAbsoluteFilePath? solutionFilePathTyped) {
             solutionFilePathTyped = mruSlnFilePaths
                 .FirstOrDefault(p => 
                     p.FileNameWithoutExtension.Equals(solutionFileNameWithNoExtension, StringComparison.OrdinalIgnoreCase));
+            if (solutionFilePathTyped != null) {
+                logger.LogInformation($"Choose `{solutionFilePathTyped}` because the file name is `{solutionFileNameWithNoExtension}`");
+            }
             return solutionFilePathTyped != null;
         }
 
         private static bool TryGetMRUSlnFilePathWhichContainSlnName(
                 string solutionFileNameWithNoExtension, 
-                List<IAbsoluteFilePath> mruSlnFilePaths, 
+                List<IAbsoluteFilePath> mruSlnFilePaths,
+                ILogger<InitializeToolsLog> logger,
                 out IAbsoluteFilePath? solutionFilePathTyped) {
             solutionFilePathTyped = mruSlnFilePaths
                 .FirstOrDefault(p =>
                     p.FileNameWithoutExtension.Contains(solutionFileNameWithNoExtension, StringComparison.OrdinalIgnoreCase));
+            if (solutionFilePathTyped != null) {
+                logger.LogInformation($"Choose `{solutionFilePathTyped}` because the file name contains `{solutionFileNameWithNoExtension}`");
+            }
             return solutionFilePathTyped != null;
         }
 
@@ -208,3 +276,4 @@ namespace NDepend.Mcp.Helpers {
         }
     }
 }
+

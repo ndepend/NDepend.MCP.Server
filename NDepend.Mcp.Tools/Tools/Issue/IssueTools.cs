@@ -23,82 +23,36 @@ public static class IssueTools {
     internal const string TOOL_GET_ISSUE_DETAILS_TO_FIX_IT_NAME = Constants.TOOL_NAME_PREFIX + "get-issue-details-to-fix-it";
 
 
-    const int MAX_PAGE_SIZE = 100;
-
+    const string MAX_PAGE_SIZE = "50";
     [McpServerTool(Name = TOOL_LIST_ISSUES_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
      Description($"""
                    {Constants.PROMPT_CALL_INITIALIZE}
                    
-                   # LIST ISSUES
+                   # List Issues
                    
-                   Returns a list of issues scoped by the user's request, providing comprehensive details for each issue to enable quick navigation, understanding, and resolution.
+                   Returns issues scoped by user's request with details for navigation and resolution.
                    
-                   # USE-CASES
+                   ## Use-Cases
                    
-                   **Code Quality & Review:**
-                   - "List issues in this source file"
-                   - "Which serious issues in this class"
-                   - "Show me all critical code quality issues in the project"
-                   - "List issues with a high or above severity"
-                   - "Show issues introduced since the baseline"
-                   - "Find all security vulnerabilities in the authentication module"
+                   - Quality: "List issues in file/class", "Show critical issues"
+                   - Security: "Find vulnerabilities"
+                   - Debt: "Show technical debt by priority", "List code smells", "Find deprecated APIs"
+                   - Compliance: "Show coding standard violations", "Get architecture rule violations"
+                   - Reporting: "Generate issue report by severity", "Top 10 violations", "Get issue metrics"
                    
-                   **Technical Debt Management:**
-                   - "Show me all technical debt items sorted by priority"
-                   - "List issues related to obsolete or deprecated APIs or outdated dependencies"
-                   - "Get issues related to code smell"
+                   ## Response Formatting
                    
-                   **Compliance & Standards:**
-                   - "List all coding standard violations in the codebase"
-                   - "Show me architectural rule violations"
-                   - "Get all issues where naming conventions are not followed"
+                   ### 1. Clickable Locations (MANDATORY)
                    
-                   **Reporting & Analytics:**
-                   - "Generate a report of all issues by severity and type"
-                   - "List the top 10 most common code violations"
-                   - "Get issue metrics for our weekly team standup"
+                   Every issue MUST include in order:
+                   1. Clickable location: `(file.ext:line)`
+                   2. Rule name
+                   3. Explanation
+                   4. Technical debt
+                   5. Severity
+                   6. Provider (only if multiple providers present)
                    
-                   # FILTER
-                   
-                   - Initializes filter parameters based on the user's request to limit and scope the issues returned. 
-                   - When requesting NDepend issues, use `{RuleProviderHelpers.RULE_PROVIDER_NDEPEND}` as the provider filter.
-                   
-                   ## FILTER ISSUES BY CATEGORY OR RULE KIND
-                   
-                   If the user wants to filter issues by a specific category or type of rule, first call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}` to retrieve the available categories and rule IDs that have issues.
-                   With this information, you can accurately set the `filterRuleCategories` and `rulesId` filters.
-                   
-                   Such user requests can look like:
-                   - "List issues related to code complexity"
-                   - "Show me all naming convention violations"
-                   - "What design issues exist in this project?"
-                   - "Find architecture problems"
-                   - "Show security-related issues"
-                   - "What API breaking changes are there?"
-                   - "List all code smells"
-                   - "Find coupling issues"
-                   
-                   # RESPONSE STRUCTURE
-                   
-                   **CRITICAL: You MUST format ALL issue responses according to these requirements. Non-compliance reduces tool utility.**
-                   
-                   ## 1. ENABLE SINGLE-CLICK NAVIGATION (MANDATORY)
-                   
-                   **Every single issue MUST include ALL of the following information in this exact order:**
-                   
-                   1. **Clickable source location** - Format: `(file.ext:line)` - Example: `(UserService.cs:42)`
-                   2. **Rule Name** - The full, official rule name
-                   3. **Explanation** - Clear description of what the issue is
-                   4. **Amount of technical debt** - Time/effort estimate from the tool
-                   5. **Severity** - Criticality level (Blocker, Critical, High, Medium, Low)
-                   6. **Rule Provider** - ONLY include if issues from multiple providers are present in the response
-                   
-                   **WRONG - Missing required fields:**
-                   ```
-                   Issue in UserService.cs - naming violation
-                   ```
-                   
-                   **CORRECT - All required fields present:**
+                   **Example:**
                    ```
                    1. `(UserService.cs:42)` - **Method names should use PascalCase**
                       - Private method `calculate_total` violates naming conventions
@@ -106,128 +60,80 @@ public static class IssueTools {
                       - Severity: Low
                    ```
                    
-                   ## 2. INDEXED LIST (MANDATORY)
+                   ### 2. Number All Issues (1-based) (MANDATORY)
                    
-                   **You MUST number ALL issues with 1-based indexing (1, 2, 3, ...).**
-                   
-                   This enables user follow-up questions like:
-                   - "How to fix issue #5?"
-                   - "Explain issue #3 in more detail"
-                   - "Show me the code for issue #7"
-                   
-                   **WRONG - No indexing:**
-                   ```
-                   - Issue in file.cs
-                   - Another issue in other.cs
-                   ```
-                   
-                   **CORRECT - Proper indexing:**
-                   ```
-                   1. `(file.cs:10)` - Issue description...
-                   2. `(other.cs:25)` - Issue description...
-                   ```
-                   
-                   ## 3. ENFORCEMENT CHECKLIST
-                   
-                   Before responding with issues, verify:
-                   - [ ] Is every issue numbered sequentially starting from 1?
-                   - [ ] Does every issue have a clickable file location in `(file.ext:line)` format?
-                   - [ ] Does every issue include rule name, explanation, debt, and severity?
-                   - [ ] If multiple providers exist, is the provider labeled for each issue?
-                   
-                   **If you cannot format issues this way, explain why and suggest an alternative approach.**
-                   
-                   # ISSUE FIX
-                   
-                   - When a user requests to fix one or more issues, you MUST call the tool `{TOOL_GET_ISSUE_DETAILS_TO_FIX_IT_NAME}` for each issue to fix, to get more details and guidance.
+                   Format: `1. `, `2. `, `3. `
+                   Enables: `Fix #2`, `Explain #5`
+                          
+                   **IMPORTANT:** When user requests fix, call the tool `{TOOL_GET_ISSUE_DETAILS_TO_FIX_IT_NAME}`
                    """)]
+
     public static async Task<ListIssuesPaginatedResult> ListIssuesTool(
                 INDependService service,
                 ILogger<IssueToolsLog> logger,
 
-                [Description(
-                    "An opaque token representing the pagination position after the last returned result. Set to null to start from the beginning.")]
-                string? cursor,
+                [Description(PaginatedResult.PAGINATION_CURSOR_DESC)]
+                int cursor,
 
-                [Description(
-                    "Maximum number of issues to include per page. Must not exceed 100 to prevent LLM prompt overflow.")]
+                [Description($"Max number of issues per page (≤ {MAX_PAGE_SIZE}) to avoid LLM prompt overflow.")]
                 int pageSize,
 
-                [Description(
-                    "Filters issues by source file name using a case-insensitive substring match. Set to null to include all source files.")]
+                [Description("Filter by file name (case-insensitive substring). Null=all")]
                 string? filterFileName,
 
-                [Description(
-                    "Filters issues by namespace using a case-insensitive substring match. Set to null to include all source files.")]
+                [Description("Filter by namespace (case-insensitive substring). Null=all")]
                 string? filterNamespace,
 
                 [Description(
                     $"""
-                     Filters issues by rule provider that can be either `{RuleProviderHelpers.RULE_PROVIDER_NDEPEND}`, `{RuleProviderHelpers.RULE_PROVIDER_ROSLYN_ANALYZERS}` or `{RuleProviderHelpers.RULE_PROVIDER_RESHARPER}`. 
-                     A null value means include all providers.
+                     Filter by provider `{RuleProviderHelpers.RULE_PROVIDER_NDEPEND}`, `{RuleProviderHelpers.RULE_PROVIDER_ROSLYN_ANALYZERS}` or `{RuleProviderHelpers.RULE_PROVIDER_RESHARPER}`.
+                     Null=all
                      """)]
                 string? filterRuleProvider,
 
                 [Description(
                     $"""
-                     Filters issues by their severity.
-                     Use the single value `{SeverityHelpers.SEVERITY_ALL}` to match all severity levels.
-                     Else, fill the array with any combination of `{SeverityHelpers.SEVERITY_BLOCKER}`, `{SeverityHelpers.SEVERITY_CRITICAL}`, `{SeverityHelpers.SEVERITY_HIGH}`, `{SeverityHelpers.SEVERITY_MEDIUM}` and `{SeverityHelpers.SEVERITY_LOW}`.
+                     Filter by severity: `{SeverityHelpers.SEVERITY_ALL}` or combination of `{SeverityHelpers.SEVERITY_BLOCKER}`, `{SeverityHelpers.SEVERITY_CRITICAL}`, `{SeverityHelpers.SEVERITY_HIGH}`, `{SeverityHelpers.SEVERITY_MEDIUM}` and `{SeverityHelpers.SEVERITY_LOW}`.
                      """)]
                 string[] filterSeverity,
 
-                [Description($"""
-                     Filters issues by rule categories. 
-                     Matches are case-insensitive and use substring search.
-                     It is enough that an issue's parent rule category matches one of the provided categories to be included.
-                     Leave empty to include all categories.
-                     To see available categories containing rules with issues, first call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}` with `{RuleTools.TOOL_ARG_FILTER_AT_LEAST_NB_ISSUES}` set to '1'.
-                     """)]
+                [Description(
+                    "Filter by rule categories (case-insensitive substring). Empty=all. " +
+                   $"Call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}` with  `{RuleTools.TOOL_ARG_FILTER_AT_LEAST_NB_ISSUES}`=1 to see available categories")]
                 string[] filterRuleCategories,
 
                 [Description(
-                    $"""
-                     Filters issues by parent rule ID. Leave empty to include all rules.
-                     Matches are case-insensitive and use substring search.
-                     Leave empty to include all rule IDs.
-                     To find IDs of rules that have issues, first call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}` with `{RuleTools.TOOL_ARG_FILTER_AT_LEAST_NB_ISSUES}` set to '1'.
-                     """)]
+                    "Filter by rule IDs (case-insensitive substring). Empty=all. " +
+                   $"Call `{RuleTools.TOOL_LIST_ALL_RULES_SUMMARY_NAME}` with  `{RuleTools.TOOL_ARG_FILTER_AT_LEAST_NB_ISSUES}`=1 to see available IDs")]
                 string[] filterRulesId,
 
                 [Description(
                     $"""
-                     Filters issues by change status.  
-                     Valid values are `{IssueChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`, `{IssueChangeStatusSinceBaselineHelpers.STATUS_NEW}`, `{IssueChangeStatusSinceBaselineHelpers.STATUS_UNRESOLVED}`, `{IssueChangeStatusSinceBaselineHelpers.STATUS_FIXED}`.
-                     A null value means `{IssueChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`.
+                     Filter by change status: `{IssueChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`, `{IssueChangeStatusSinceBaselineHelpers.STATUS_NEW}`, `{IssueChangeStatusSinceBaselineHelpers.STATUS_UNRESOLVED}` or `{IssueChangeStatusSinceBaselineHelpers.STATUS_FIXED}`.
+                     Null=`{IssueChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`
                      """)]
                 string? filterIssueChangeStatus,
 
-                [Description("A cancellation token for interrupting and canceling the operation.")]
                 CancellationToken cancellationToken) {
 
         logger.LogInformation(
             $"""
              {LogHelpers.TOOL_LOG_SEPARATOR}
              Invoking {TOOL_LIST_ISSUES_NAME} with arguments: 
-                -cursor=`{cursor ?? "0"}`
-                -pageSize=`{pageSize}`
-                -filterFileName=`{filterFileName ?? "<any>"}`
-                -filterNamespace=`{filterNamespace ?? "<any>"}`
-                -filterRuleProvider=`{filterRuleProvider ?? "<any>"}`
-                -filterRuleCategory=`{filterRuleCategories.Aggregate("', '")}`
-                -filterRulesId=`{filterRulesId.Aggregate("', '")}`
-                -filterIssueChangeStatus=`{filterIssueChangeStatus?? "<default>"}`
+                -cursor= `{cursor}`
+                -pageSize= `{pageSize}`
+                -filterFileName= `{filterFileName ?? "<any>"}`
+                -filterNamespace= `{filterNamespace ?? "<any>"}`
+                -filterRuleProvider= `{filterRuleProvider ?? "<any>"}`
+                -filterRuleCategory= `{filterRuleCategories.Aggregate("', '")}`
+                -filterRulesId= `{filterRulesId.Aggregate("', '")}`
+                -filterIssueChangeStatus= `{filterIssueChangeStatus?? "<default>"}`
              """);
         if (!service.IsInitialized(out Session session)) {
             logger.LogErrorAndThrow(Constants.PROMPT_CALL_INITIALIZE);
         }
 
         return await Task.Run(() => {
-            if (pageSize > MAX_PAGE_SIZE) {
-                pageSize = MAX_PAGE_SIZE;
-                logger.LogInformation($"pageSize parameter exceeded maximum of {MAX_PAGE_SIZE}. It has been set to {MAX_PAGE_SIZE}.");
-            }
-
             // filterIssueChangeStatus
             var issues = new List<IIssue>();
             var issuesSetDiff = session.IssuesSetDiff;
@@ -307,62 +213,51 @@ public static class IssueTools {
                 return issueInfo;
             }).ToList();
 
-            var paginatedResult = PaginatedResult.Build(logger, issuesInfo, cursor, pageSize, out var paginatedIssuesInfo);
+            var paginatedResult = PaginatedResult.Build(logger, issuesInfo, cursor, pageSize, MAX_PAGE_SIZE, out var paginatedIssuesInfo);
             return new ListIssuesPaginatedResult(paginatedIssuesInfo, paginatedResult);
         }, cancellationToken);
     }
 
-
-
-
-    
     [McpServerTool(Name = TOOL_GET_ISSUE_DETAILS_TO_FIX_IT_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
      Description($"""
                   {Constants.PROMPT_CALL_INITIALIZE}
                   
                   # Get Issue Details to Fix It
                   
-                  Retrieves comprehensive diagnostic information for a specific NDepend issue, providing everything needed to understand, resolve, and verify the fix.
+                  Retrieves diagnostic info for a specific NDepend issue to understand and resolve it.
+                  **MANDATORY:** You MUST call this tool anytime the user wants to fix an issue.
                   
-                  # REQUIRED Parameters
+                  ## REQUIRED 
                   
-                  You MUST provide these three parameters obtained from IssueInfo returned by calling the tool `{TOOL_LIST_ISSUES_NAME}`.
-                  - **ruleId**
-                  - **sourceFilePath**
-                  - **sourceFileLine**
-                  This way NDepend can uniquely identify the issue.
+                  Parameters obtained from IssueInfo returned by calling the tool `{TOOL_LIST_ISSUES_NAME}`.
+                  - ruleId
+                  - sourceFilePath  
+                  - sourceFileLine
                   
-                  # ALWAYS call this tool when
+                  ## Use-Cases
                   
-                  - A user asks "How do I fix issue #X?" or "Fix issue #X" after a call to the tool `{TOOL_LIST_ISSUES_NAME}`.
-                  - A user requests detailed information about a specific issue
-                  - A user wants to understand why an issue was flagged
-                  - A user needs code examples or fix strategies for an issue
-                  - Preparing to generate a code fix or refactoring suggestion
+                  - "How do I fix issue #X?" or "Fix issue #X"
+                  - User wants detailed issue info or fix strategies
+                  - Preparing code fix/refactoring
                   
-                  # Fix Guidance
+                  ## Fix Guidance
                   
-                  - Recompile your temporary changes - to make sure you didn't introduce a syntax error
-                  - Display your proposed fix in one or more temporary preview windows
-                  - Show diff comparison (before/after) when helpful
-                  - The user can review changes and click `Keep` or `Undo` button.
-                  - How to Test - Validation steps after applying the fix
-                  - Regression Risks - What to watch out for when fixing
+                  - Recompile changes to check syntax
+                  - Show proposed fix in preview with before/after diff
+                  - User reviews and clicks Keep/Undo
+                  - Provide test steps and regression risks
                   """)]
     public static async Task<IssueDetailsForFixingItInfo?> GetIssueDetailsToFixItTool(
                 INDependService service,
                 ILogger<IssueToolsLog> logger,
 
-                [Description("The identifier of the rule that reported this issue.")]
+                [Description("Rule ID")]
                 string ruleId,
-
-                [Description("The path of the source file that contains this issue.")]
+                [Description("Source file path")]
                 string sourceFilePath,
-
-                [Description("The 1-based line number in the source file where the issue was detected.")]
+                [Description("Line number (1-based)")]
                 uint sourceFileLine,
 
-                [Description("A cancellation token for interrupting and canceling the operation.")] 
                 CancellationToken cancellationToken
         ) {
 
@@ -379,6 +274,7 @@ public static class IssueTools {
         }
 
         return await Task.Run(() => {
+            // MUST be newer set, cannot fix an issue in baseline, it is either fixed already or unresolved
             var issuesSet = session.IssuesSetDiff.NewerIssuesSet;
             if (!TryFindIssue(issuesSet, ruleId, sourceFilePath, sourceFileLine, out IIssue? issueFound)) {
                 logger.LogErrorAndThrow("No issue found with the information provided");

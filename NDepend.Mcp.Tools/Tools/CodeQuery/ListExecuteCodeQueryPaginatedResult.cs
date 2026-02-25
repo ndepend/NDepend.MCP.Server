@@ -2,7 +2,8 @@
 
 namespace NDepend.Mcp.Tools.CodeQuery {
 
-    [Description("This class let's paginate the server's response to a list code query or rule execution result.")]
+    
+    [Description($"Enables pagination for `{CodeQueryTools.TOOL_RUN_QUERY_NAME}` MCP tool responses.")]
     public class ListExecuteCodeQueryPaginatedResult : PaginatedResult {
 
         public ListExecuteCodeQueryPaginatedResult(
@@ -13,7 +14,7 @@ namespace NDepend.Mcp.Tools.CodeQuery {
 
         [Description(
                   $"""
-                     The kind of code query, can be one of the following:
+                     Query kind, one of:
                      `{CodeQueryKind.CODE_QUERY_LIST}`,
                      `{CodeQueryKind.CODE_RULE}`,
                      `{CodeQueryKind.QUALITY_GATE}`,
@@ -23,27 +24,22 @@ namespace NDepend.Mcp.Tools.CodeQuery {
                      """)]
         public string KindOfCodeQuery { get; set; } = "";
 
-        [Description($"If the parameter KindOfCodeQuery is `{CodeQueryKind.QUALITY_GATE}`, `{CodeQueryKind.CODE_QUERY_SCALAR}` or `{CodeQueryKind.TREND_METRIC}`, return the numerical scalar result.")]
+        [Description($"Scalar result if query kind is `{CodeQueryKind.QUALITY_GATE}`, `{CodeQueryKind.CODE_QUERY_SCALAR}` or `{CodeQueryKind.TREND_METRIC}`, return the numerical scalar result.")]
         public double? ScalarResult { get; set; }
 
         [Description(
            $"""
-             If the parameter KindOfCodeQuery is `{CodeQueryKind.QUALITY_GATE}`, returns its status, which can be one of the following:
-             `{CodeQuery.ExecutionStatus.STATUS_PASS}`,
-             `{CodeQuery.ExecutionStatus.STATUS_WARN}`,
-             `{CodeQuery.ExecutionStatus.STATUS_FAIL}`
-             
-             If the parameter KindOfCodeQuery is `{CodeQueryKind.CODE_RULE}` with onr or more issues, the status is `{CodeQuery.ExecutionStatus.STATUS_WARN}`.
-             
-             Else the status is `{CodeQuery.ExecutionStatus.STATUS_PASS}`.
+             If query kind is `{CodeQueryKind.QUALITY_GATE}` returns `{CodeQuery.ExecutionStatus.STATUS_PASS}`, `{CodeQuery.ExecutionStatus.STATUS_WARN}`, or `{CodeQuery.ExecutionStatus.STATUS_FAIL}`.
+             If query kind is `{CodeQueryKind.CODE_RULE}` with issues returns `{CodeQuery.ExecutionStatus.STATUS_WARN}`.
+             Otherwise returns `{CodeQuery.ExecutionStatus.STATUS_PASS}`.
              """)]
         public string ExecutionStatus { get; set; } = NDepend.Mcp.Tools.CodeQuery.ExecutionStatus.STATUS_PASS;
 
 
-        [Description("Gets or sets the column names returned by the code query or rule.")]
+        [Description("Column names")]
         public string[] ColumnNames { get; set; } = [];
 
-        [Description("Gets or sets the sequence of records paginated.")]
+        [Description("Paginated records")]
         public IEnumerable<RecordInfo> Records { get; set; } = [];
 
     }

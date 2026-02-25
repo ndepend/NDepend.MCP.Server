@@ -2,15 +2,15 @@
 
 namespace NDepend.Mcp.Tools.Dependency;
 
-[Description($"This class enables pagination of the server responses returned by calls to the MCP tool `{DependencyTools.TOOL_LIST_DEPENDENCIES_NAME}`.")]
+[Description($"Enables pagination for `{DependencyTools.TOOL_LIST_DEPENDENCIES_NAME}` MCP tool responses.")]
 public class ListDependenciesPaginatedResult : PaginatedResult {
 
     public ListDependenciesPaginatedResult(
-            IEnumerable<DependencyInfo> metricsPaginated,
+            IEnumerable<DependencyInfo> dependenciesPaginated,
             PaginatedResult pr) : base(pr) {
-        Metrics = metricsPaginated;
+        Dependencies = dependenciesPaginated;
     }
 
-    [Description("Gets or sets the sequence of dependencies paginated.")]
-    public IEnumerable<DependencyInfo> Metrics { get; set; } = [];
+    [Description("Sequence of paginated dependencies")]
+    public IEnumerable<DependencyInfo> Dependencies { get; set; } = [];
 }

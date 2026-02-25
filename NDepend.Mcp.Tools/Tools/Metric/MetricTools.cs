@@ -13,9 +13,10 @@ public static class MetricTools {
 
     internal const string TOOL_SEARCH_CODE_METRICS_NAME = Constants.TOOL_NAME_PREFIX + "search-code-metrics";
 
-    private const string GREATER_THAN = "greater-than-or-equals";
-    private const string LOWER_THAN = "lower-than-or-equals";
-    private const string MAX_PAGE_SIZE = "500";
+    private const string GREATER_THAN_OR_EQUALS = ">=";
+    private const string LOWER_THAN_OR_EQUALS = "<=";
+    private const string MAX_PAGE_SIZE = "100";
+
 
     [McpServerTool(Name = TOOL_SEARCH_CODE_METRICS_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
      Description($"""
@@ -23,155 +24,106 @@ public static class MetricTools {
                     
                     # Code Metrics Collection
                     
-                    Collect and analyze code metrics for one or more code elements to assess code quality, maintainability, and test coverage.
-                    When the user ask for metrics, call this tool.
+                    Collect code metrics to assess quality, maintainability, and test coverage.
                     
-                    # Purpose and Use-Cases
+                    Call this tool:
+                    - **REQUIRED:** when metrics are requested
+                    - **OPTIONAL:** to search code elements by name. Fill filters as needed
                     
-                    **Refactoring Candidates:**
-                    - "Which code is poorly maintainable in the namespace XYZ?"
-                    - "Which methods are too long?"
-                    - "Find complex methods that need refactoring"
-                    - "Show me the most complex classes"
-                    - "What should I refactor first?"
+                    ## Use-Cases
                     
-                    **Quality Assessment:**
-                    - "How complex is the UserService class?"
-                    - "Is this code too complex?"
-                    - "What's the maintainability index of the Authenticate method?"
+                    ### Quality
+                    - Which code is poorly maintainable?  
+                    - Which methods are too long or complex?  
                     
-                    **Test Coverage Analysis:**
-                    - "Which methods need more tests?"
-                    - "What's the test coverage for UserController?"
-                    - "Show me coverage metrics"
-                    - "Is the PaymentService well-tested?"
-                    - "What's our test coverage percentage?"
-
-                    **Size & Complexity:**
-                    - "How many lines of code in this class?"
-                    - "What's the Halstead volume?"
-                    - "Show me complexity metrics"
-                    - "Is this method too big?"
+                    ### Refactoring
+                    - What should I refactor first?  
                     
-                    **Comparison & Prioritization:**
-                    - "Compare metrics across services"
-                    - "Rank methods by maintainability"
-                    - "Show worst-performing code"
+                    ### Test Coverage
+                    - Which methods need more tests?  
+                    - What's the coverage for UserController?  
+                    - Which classes are untested?  
                     
-                    **Code Review Support:**
-                    - "Are these changes introducing complexity?"
-                    - "Check metrics for new code"
-                    - "Did this refactoring improve maintainability?"
-                    - "Validate code quality standards"
+                    ### Size & Complexity
+                    - Lines of code per class?  
+                    - Show complexity metrics  
                     
-                    # Metric Thresholds
+                    ### Comparison & Prioritization
+                    - Compare metrics across services  
+                    - Show worst-performing code  
                     
-                    The following thresholds indicate potentially problematic code that may warrant attention:
+                    ### Code Review
+                    - Are changes adding complexity?  
+                    - Did refactoring improve maintainability?  
                     
-                    **All Code Elements:**
-                    - `{CodeMetricHelpers.METRIC_MI}` (`{CodeMetricHelpers.METRIC_MI_ACRONYM}`) < 50 → Poor maintainability
-                    - `{CodeMetricHelpers.METRIC_PERCENT_COVERAGE}` (`{CodeMetricHelpers.METRIC_PERCENT_COVERAGE_ACRONYM}`) < 90% → Insufficient testing
+                    ### Code Search
+                    - Which types and methods are related to `Login`
                     
-                    **Methods (`{CodeElementKindHelpers.KIND_METHOD}`):**
-                    - `{CodeMetricHelpers.METRIC_LOC}` (`{CodeMetricHelpers.METRIC_LOC_ACRONYM}`) > 50 → Too long, consider splitting
-                    - `{CodeMetricHelpers.METRIC_CC}` (`{CodeMetricHelpers.METRIC_CC_ACRONYM}`) > 20 → Too complex, hard to test
-                    - `{CodeMetricHelpers.METRIC_HV}` (`{CodeMetricHelpers.METRIC_HV_ACRONYM}`) > 600 → High cognitive load
+                    ## Response Formatting
                     
-                    **Types/Classes (`{CodeElementKindHelpers.KIND_TYPE}`):**
-                    - `{CodeMetricHelpers.METRIC_LOC}` (`{CodeMetricHelpers.METRIC_LOC_ACRONYM}`) > 400 → Too large, violates SRP
-                    - `{CodeMetricHelpers.METRIC_CC}` (`{CodeMetricHelpers.METRIC_CC_ACRONYM}`) > 200 → Too many branches
-                    - `{CodeMetricHelpers.METRIC_HV}` (`{CodeMetricHelpers.METRIC_HV_ACRONYM}`) > 8000 → Overly complex
+                    ### 1. Clickable Locations (MANDATORY)
+                    Always show: **Full qualified name** `(file.ext:line)` for each code element displayed
+                    Example: `method ClientLog() (UserService.cs:45)`
                     
-                    **Filtering:** You can optionally filter results to show only code elements exceeding these thresholds.
-                  
-                    # Response Structure
-                    
-                    ## 1. Enable Single-Click Navigation
-                    
-                    Every code element MUST include:
-                    - **Full qualified name** (e.g., `UserService.Authenticate`, `CustomerRepository`)
-                    - **Clickable source location**: `ElementName (file.ext:line)`
-                    
-                    ## 2. Clear Metric Presentation
-                    
-                    When multiple metrics are collected for a code element:
-                    - Present them in a structured, scannable format
-                    - Highlight values that exceed thresholds
-                    - Group related metrics together (e.g., size metrics, complexity metrics)
-                    - Prefix each value with its metric name acronym for clarity (`{CodeMetricHelpers.METRIC_LOC_ACRONYM}`, `{CodeMetricHelpers.METRIC_CC_ACRONYM}`, `{CodeMetricHelpers.METRIC_MI_ACRONYM}`, `{CodeMetricHelpers.METRIC_HV_ACRONYM}`, `{CodeMetricHelpers.METRIC_PERCENT_COVERAGE_ACRONYM}`)
+                    ### 2. Number All Rows (1-based) (MANDATORY)
+                    Format: `1. `, `2. `, `3. `
+                    Enables: `Show me more about #5`
+  
+                    ### 3. Clear Metric Presentation
                       
-                    ## 3. Indexed List
-                    Number all dependencies with 1-based indexing for easy reference.
-                    - Enables user follow-up: "Show me more about metric #5"
+                    For multiple metrics per code element:
+                    - Show in a structured, scannable format  
+                    - Highlight values above thresholds  
+                    - Group related metrics and prefix with metric acronyms (`{CodeMetricHelpers.METRIC_LOC_ACRONYM}`, `{CodeMetricHelpers.METRIC_CC_ACRONYM}`, `{CodeMetricHelpers.METRIC_MI_ACRONYM}`, `{CodeMetricHelpers.METRIC_HV_ACRONYM}`, `{CodeMetricHelpers.METRIC_PERCENT_COVERAGE_ACRONYM}`)
                     """)]
     public static async Task<ListMetricsPaginatedResult> SearchCodeMetricsTool(
                 INDependService service,
                 ILogger<MetricToolsLog> logger,
 
-                [Description(
-                    "An opaque token representing the pagination position after the last returned result. Set to null to start from the beginning.")]
-                string? cursor,
+                [Description(PaginatedResult.PAGINATION_CURSOR_DESC)]
+                int cursor,
 
-                [Description(
-                    $"Maximum number of code elements to include per page. Must not exceed {MAX_PAGE_SIZE} to prevent LLM prompt overflow.")]
+                [Description($"Max number of code elements per page (≤ {MAX_PAGE_SIZE}) to avoid LLM prompt overflow.")]
                 int pageSize,
 
-                [Description(
-                    $"""
-                      Specify whether to search for code elements from the current analysis or from the baseline snapshot.
-                      Value can be either `{CurrentOrBaselineHelpers.CURRENT}` per default, or `{CurrentOrBaselineHelpers.BASELINE}`.
-                      """)]
+                [Description($"""
+                    Search code elements {CodeElementApplyFilter.FROM_CURRENT_OR_BASELINE_ENUM}.
+                    """)]
                 string currentOrBaseline,
 
                 [Description(
                     $"""
-                     Filters code elements by change status.
-                     Valid values are `{CodeChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`, `{CodeChangeStatusSinceBaselineHelpers.STATUS_NEW}`, `{CodeChangeStatusSinceBaselineHelpers.STATUS_MODIFIED}`, `{CodeChangeStatusSinceBaselineHelpers.STATUS_UNCHANGED}`,`{CodeChangeStatusSinceBaselineHelpers.STATUS_REMOVED}`.
-                     A null value means `{CodeChangeStatusSinceBaselineHelpers.STATUS_DEFAULT}`.
-                     `{CodeChangeStatusSinceBaselineHelpers.STATUS_REMOVED}` can only work if the parameter currentOrBaseline is set to `{CurrentOrBaselineHelpers.BASELINE}`.
-                     """)]
+                    Filter code elements by change status: {CodeElementApplyFilter.CHANGE_STATUS_ENUM}
+                    """)]
                 string? filterCodeElementChangeStatus,
 
                 [Description(
                     $"""
                      A list of code elements kinds to search for.
-                     Possible values are `{CodeElementKindHelpers.KIND_ALL}`, '${CodeElementKindHelpers.KIND_ASSEMBLY}`, `{CodeElementKindHelpers.KIND_NAMESPACE}`, `{CodeElementKindHelpers.KIND_TYPE}` and `{CodeElementKindHelpers.KIND_METHOD}`.
+                     {CodeElementApplyFilter.FILTER_ELEM_KIND_ENUM}
                      """)]
                 string[] filterCodeElementKinds,
 
-                [Description(
-                    """
-                     Specify the source file name that contains the code elements, including its extension (e.g., .cs for C# files).
-                     If multiple source files share the same name, all of them will be included.
-                     Set this value to null to search for code elements across all source files.
-                     """)]
+                [Description(CodeElementApplyFilter.FILTER_FILE_NAME_DESC)]
                 string? filterFileName,
 
-                [Description(
-                    $"""
-                     A substring used to filter by code element simple name.
-                     {CodeElementKindHelpers.SIMPLE_NAME_EXPLANATION}
-                     """)]
+                [Description(CodeElementApplyFilter.FILTER_SIMPLE_NAME_DESC)]
                 string? filterSimpleNamePattern,
 
-                [Description(
-                    $"""
-                     A substring used to filter by the parent’s name of the target code element.
-                     {CodeElementKindHelpers.PARENT_NAME_EXPLANATION}
-                     """)]
+                [Description(CodeElementApplyFilter.FILTER_PARENT_NAME_DESC)]
                 string? filterParentNamePattern,
 
-                [Description("Filter by parent project name. ")]
+                [Description(CodeElementApplyFilter.FILTER_PARENT_PROJECT_NAME_DESC)]
                 string? filterProjectName,
 
                 [Description(
-                    $"""
-                     A list of metric names to retrieve.
-                     When it makes sense, you MUST provide multiple related code metrics — or even all metrics — to give a more complete view of code quality.
-                     Possible values are `{CodeMetricHelpers.METRIC_LOC}`, `{CodeMetricHelpers.METRIC_CC}`, `{CodeMetricHelpers.METRIC_MI}`, `{CodeMetricHelpers.METRIC_HV}`, `{CodeMetricHelpers.METRIC_COMMENT}` and `{CodeMetricHelpers.METRIC_PERCENT_COVERAGE}`.
-                     """)]
+                    $$"""
+                      List of metric names to retrieve.
+                      You MUST provide multiple related metrics when possible for a fuller view of code quality.
+                      Include `{CodeMetricHelpers.METRIC_PERCENT_COVERAGE}` only if requested.
+                      Possible values are `{{CodeMetricHelpers.METRIC_LOC}}`, `{{CodeMetricHelpers.METRIC_CC}}`, `{{CodeMetricHelpers.METRIC_MI}}`, `{{CodeMetricHelpers.METRIC_HV}}`, `{{CodeMetricHelpers.METRIC_COMMENT}}` and `{{CodeMetricHelpers.METRIC_PERCENT_COVERAGE}}`.
+                      """)]
                 string[] metricNames,
-
 
                 [Description(
                      $"""
@@ -182,24 +134,41 @@ public static class MetricTools {
 
                 [Description($"""
                               The direction of the threshold comparison.
-                              Possible values are null, `{GREATER_THAN}`, or `{LOWER_THAN}`.
+                              Possible values are null, `{GREATER_THAN_OR_EQUALS}`, or `{LOWER_THAN_OR_EQUALS}`.
                               """)]
                 string? thresholdGreaterLower,
 
-                [Description("The threshold value applied to filter code elements based on the selected metric.")]
+                [Description(
+                  $"""
+                   The threshold used to flag code elements for a selected metric.  
+                   Here are values indicating potentially problematic code.
+                   
+                   **All Code Elements:**
+                   - `{CodeMetricHelpers.METRIC_MI}` (`{CodeMetricHelpers.METRIC_MI_ACRONYM}`) < 50 → Poor maintainability
+                   - `{CodeMetricHelpers.METRIC_PERCENT_COVERAGE}` (`{CodeMetricHelpers.METRIC_PERCENT_COVERAGE_ACRONYM}`) < 90% → Insufficient testing
+                   
+                   **Methods (`{CodeElementKindHelpers.KIND_METHOD}`):**
+                   - `{CodeMetricHelpers.METRIC_LOC}` (`{CodeMetricHelpers.METRIC_LOC_ACRONYM}`) > 50 → Too long, consider splitting
+                   - `{CodeMetricHelpers.METRIC_CC}` (`{CodeMetricHelpers.METRIC_CC_ACRONYM}`) > 20 → Too complex, hard to test
+                   - `{CodeMetricHelpers.METRIC_HV}` (`{CodeMetricHelpers.METRIC_HV_ACRONYM}`) > 600 → High cognitive load
+                   
+                   **Types/Classes (`{CodeElementKindHelpers.KIND_TYPE}`):**
+                   - `{CodeMetricHelpers.METRIC_LOC}` (`{CodeMetricHelpers.METRIC_LOC_ACRONYM}`) > 400 → Too large, violates SRP
+                   - `{CodeMetricHelpers.METRIC_CC}` (`{CodeMetricHelpers.METRIC_CC_ACRONYM}`) > 200 → Too many branches
+                   - `{CodeMetricHelpers.METRIC_HV}` (`{CodeMetricHelpers.METRIC_HV_ACRONYM}`) > 8000 → Overly complex
+                   """)]
                 ulong? thresholdValue,
 
-                [Description("A cancellation token for interrupting and canceling the operation.")] 
                 CancellationToken cancellationToken) {
 
         logger.LogInformation(
             $"""
                {LogHelpers.TOOL_LOG_SEPARATOR}
                Invoking {TOOL_SEARCH_CODE_METRICS_NAME} with arguments: 
-                  cursor=`{cursor ?? "0"}`
-                  pageSize=`{pageSize}`
-                  currentOrBaseline=`{currentOrBaseline}`
-                  filterCodeElementChangeStatus=`{filterCodeElementChangeStatus ?? "<default>"}`
+                  cursor= `{cursor}`
+                  pageSize= `{pageSize}`
+                  currentOrBaseline= `{currentOrBaseline}`
+                  filterCodeElementChangeStatus= `{filterCodeElementChangeStatus ?? "<default>"}`
                   filterCodeElementKinds: `{filterCodeElementKinds.Aggregate("', '")}`
                   filterFileName: `{filterFileName ?? "<any>"}`
                   filterSimpleNamePattern: `{filterSimpleNamePattern ?? "<any>"}`
@@ -251,7 +220,18 @@ public static class MetricTools {
             // Apply threshold filter
             if (thresholdMetric.IsValid() && thresholdGreaterLower.IsValid() && thresholdValue != null) {
                 CodeMetric metric = CodeMetricHelpers.GetCodeMetric(logger, thresholdMetric);
-                bool isGreaterThan = thresholdGreaterLower.Equals(GREATER_THAN, StringComparison.OrdinalIgnoreCase);
+
+                bool isGreaterThan = true; // greater by default
+                switch (thresholdGreaterLower) {
+                    case GREATER_THAN_OR_EQUALS: break;
+                    case LOWER_THAN_OR_EQUALS: isGreaterThan = false; break;
+                    default:
+                        if(thresholdGreaterLower.ContainsAny("<", "lower", StringComparison.OrdinalIgnoreCase)) {
+                            isGreaterThan = false;
+                        }
+                        break;
+                }
+
                 ulong threshold = thresholdValue.Value;
 
                 codeContainers.RemoveAll(c => {
@@ -288,7 +268,7 @@ public static class MetricTools {
             CodeMetric metrics = CodeMetricHelpers.GetCodeMetrics(logger, metricNames);
             var metricsInfo = codeContainers.Select(cc => new MetricInfo(cc, metrics, filterFileName)).ToList();
 
-            var paginatedResult = PaginatedResult.Build(logger, metricsInfo, cursor, pageSize, out var paginatedMetricsInfo);
+            var paginatedResult = PaginatedResult.Build(logger, metricsInfo, cursor, pageSize, MAX_PAGE_SIZE, out var paginatedMetricsInfo);
             return new ListMetricsPaginatedResult(paginatedMetricsInfo, paginatedResult);
 
    
