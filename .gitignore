@@ -35,7 +35,10 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-**/NDependOut/
+
+# NDepend project and artefacts
+NDependOut/
+*.ndproj
 
 # Visual Studio cache files
 .vs/
