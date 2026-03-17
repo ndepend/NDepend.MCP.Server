@@ -4,7 +4,7 @@ using NDepend.Mcp.Helpers;
 using Serilog;
 using Serilog.Events;
 
-namespace NDepend.Mcp.SseServer;
+namespace NDepend.Mcp.HttpServer;
 
 public class Program  {
     // --- Application ---
@@ -16,7 +16,7 @@ public class Program  {
 
         AppDomain.CurrentDomain.AssemblyResolve += s_AssemblyResolver.AssemblyResolveHandler;
 
-        var bootstrap = new McpServerBootstrapSse();
+        var bootstrap = new McpServerBootstrapHttp();
 
         if (!bootstrap.TryParseArgument(args,
                out string? serverUrl,
@@ -53,6 +53,9 @@ public class Program  {
             });
 
             bootstrap.InitServices(builder).WithHttpTransport();
+            //.WithHttpTransport(option => {  //<-- don't exit    https://github.com/modelcontextprotocol/csharp-sdk/discussions/790
+            //    option. = new[] { "http://localhost:5280/mcp" };
+            //}); // HTTP transport for dev tunnel
 
             WebApplication app = builder.Build();
 
@@ -101,7 +104,7 @@ public class Program  {
             // app.UseHttpsRedirection(); 
 
             // 4. MCP Middleware
-            app.MapMcp(); // Maps the MCP endpoint (typically "/mcp")
+            app.MapMcp("/mcp"); // Maps the MCP endpoint (need to specify "/mcp" for HTTPStreamable)
 
             Log.Information($"Starting {bootstrap.ApplicationName} server...");
             await app.RunAsync(serverUrl);

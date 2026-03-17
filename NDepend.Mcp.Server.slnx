@@ -3,7 +3,7 @@
     <File Path="ManualTestScripts.txt" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="NDepend.Mcp.SseServer/NDepend.Mcp.SseServer.csproj" />
+  <Project Path="NDepend.Mcp.HttpServer/NDepend.Mcp.HttpServer.csproj" />
   <Project Path="NDepend.Mcp.StdioServer/NDepend.Mcp.StdioServer.csproj" />
   <Project Path="NDepend.Mcp.Tools/NDepend.Mcp.Tools.csproj" />
   <Project Path="NDepend.Project.Chooser/NDepend.Project.Chooser.csproj" Id="8880b1c0-5222-43b8-ab93-6abf84b4871f" />

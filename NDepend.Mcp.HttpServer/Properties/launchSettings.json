@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "NDepend.Mcp.SseServer": {
+    "NDepend.Mcp.HttpServer": {
       "commandName": "Project"
     }
   }

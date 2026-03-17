@@ -35,6 +35,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+**/NDependOut/
 
 # Visual Studio cache files
 .vs/

@@ -52,7 +52,7 @@ Watch this video featuring the NDepend MCP Server, including five complete demos
 %ndp-mcp-svr-dir%\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\NDepend.Mcp.StdioServer.exe
 ```
 ```
-%ndp-mcp-svr-dir%\artifacts\bin\NDepend.Mcp.SseServer\Debug\net10.0\NDepend.Mcp.SseServer.exe
+%ndp-mcp-svr-dir%\artifacts\bin\NDepend.Mcp.HttpServer\Debug\net10.0\NDepend.Mcp.HttpServer.exe
 ```
 
 ## MCP Server Registration
@@ -76,15 +76,15 @@ This will add to the MCP JSON configuration file (for stdio):
 }
 ```
 
-or for HTTP SSE
+or for Steamable HTTP
 
 ```json
 {
   "inputs": [],
   "servers": {
     "NDepend.Mcp.Server": {
-      "url": "http://localhost:3001/sse",
-      "type": "sse"
+      "type": "http",
+      "url": "http://localhost:3001/mcp"
     }
   }
 }

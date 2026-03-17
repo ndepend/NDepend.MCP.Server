@@ -2,7 +2,7 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <SelfContained>false</SelfContained>
-        <AssemblyName>NDepend.Mcp.SseServer</AssemblyName>
+        <AssemblyName>NDepend.Mcp.HttpServer</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
       <Compile Include="..\NDepend.Mcp.StdioServer\NDepend.Mcp.Server\McpServerBootstrapBase.cs" Link="NDepend.Mcp.Server\McpServerBootstrapBase.cs" />
@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
+        <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.1.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
         <PackageReference Include="System.CommandLine" Version="2.0.0" />

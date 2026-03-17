@@ -4,10 +4,10 @@ using NDepend.Mcp.Server;
 using Serilog;
 using Serilog.Events;
 
-namespace NDepend.Mcp.SseServer {
-    internal sealed class McpServerBootstrapSse : McpServerBootstrapBase {
+namespace NDepend.Mcp.HttpServer {
+    internal sealed class McpServerBootstrapHttp : McpServerBootstrapBase {
 
-        internal override string Kind => "Sse";
+        internal override string Kind => "Http";
 
         internal bool TryParseArgument(
                 string[] args,
@@ -18,7 +18,7 @@ namespace NDepend.Mcp.SseServer {
 
             var portOption = new Option<int>("--port") {
                 Description = "The port number for the NDepend MCP server to listen on.",
-                // Port 3001 is a reasonable default for the SseServer, 
+                // Port 3001 is a reasonable default for the HttpServer, 
                 // but if it’s already in use, choose a different port.
                 DefaultValueFactory = x => 3001
             };
