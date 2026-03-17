@@ -8,5 +8,4 @@ public sealed class IssueToolsLog { }
 public sealed class MetricToolsLog { }
 public sealed class QualityGateToolsLog { }
 public sealed class RuleToolsLog { }
-public sealed class SearchToolsLog { }
 public sealed class SourceToolsLog { }

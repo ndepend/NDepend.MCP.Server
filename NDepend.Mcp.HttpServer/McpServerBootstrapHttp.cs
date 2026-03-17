@@ -8,7 +8,6 @@ namespace NDepend.Mcp.HttpServer {
     internal sealed class McpServerBootstrapHttp : McpServerBootstrapBase {
 
         internal override string Kind => "Http";
-
         internal bool TryParseArgument(
                 string[] args,
                 out string? serverUrl,

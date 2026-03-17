@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path="ManualTestScripts.txt" />
-    <File Path="README.md" />
+    <File Path="README.md" /> 
   </Folder>
   <Project Path="NDepend.Mcp.HttpServer/NDepend.Mcp.HttpServer.csproj" />
   <Project Path="NDepend.Mcp.StdioServer/NDepend.Mcp.StdioServer.csproj" />

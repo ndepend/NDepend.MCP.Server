@@ -5,7 +5,6 @@ using Serilog;
 using Serilog.Events;
 
 namespace NDepend.Mcp.HttpServer;
-
 public class Program  {
     // --- Application ---
 

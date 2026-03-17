@@ -1,5 +1,5 @@
 ![ndepend-logo](artifacts/images/ndepend-logo.png)  ![MCP-logo](artifacts/images/mcp.png) 
-# NDepend.MCP.Server  
+# NDepend.MCP.Server   
 
 The **NDepend.MCP.Server** is a Model Context Protocol (MCP) server that delivers deep workspace analysis and advanced code inspection capabilities for .NET projects, powered by the NDepend API.
 
