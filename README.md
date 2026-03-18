@@ -3,9 +3,19 @@
 
 The **NDepend.MCP.Server** is a Model Context Protocol (MCP) server that delivers deep workspace analysis and advanced code inspection capabilities for .NET projects, powered by the NDepend API.
 
-Its key strengths are speed, rich semantic knowledge of the codebase and the ability to efficiently analyze and query large .NET solutions while keeping LLM token usage reasonable. It gives the AI agent access to Roslyn Analyzers, ReSharper Code Inspections, and NDepend’s rules, along with objective code metrics such as maintainability, complexity and coverage, diff from a baseline, and dependency analysis features.
+It turns NDepend's deep code insights into AI-powered actions:
 
-**Privacy:** While information like issues, metrics, dependencies, and identifiers is shared with the AI agent, your source code never leaves your environment—**NDepend scan runs entirely on-premises**. The LLM only accesses source code when you explicitly ask it to fix an issue.
+- **Fix** one or multiple complex issues automatically
+- **Generate** code queries or rules on demand
+- **Interact** with NDepend's rich data using natural language
+- **Refactor** several files at once to improve code quality and maintainability
+
+Its key strengths are:
+
+- **Privacy:** NDepend scan runs entirely on-premises - Your code stays private on your machine
+- **Reliability:** AI gets reliable, structured data instead of raw file dumps
+- **Performance:** Faster responses and lower token costs
+- **Objectivity:** No LLM bias—just NDepend's proven analysis
 
 Since the project is open source, you’re free to adapt and extend the server with MCP tools that fit your workflow.
 
@@ -45,7 +55,7 @@ Watch this video featuring the NDepend MCP Server, including five complete demos
 
 - **REQUIRED:** Run **VisualNDepend.exe** once to start your evaluation or register a license.
 
-- Then rebuild the solution **%ndp-mcp-svr-dir%\NDepend.Mcp.Server.sln**
+- Then rebuild the solution **%ndp-mcp-svr-dir%\NDepend.Mcp.Server.sln** (.NET 10.0 required)
 
 - DLLs and executables built can be found here:
 ```
