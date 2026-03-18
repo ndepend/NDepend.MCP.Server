@@ -67,6 +67,13 @@ internal static partial class CodeQueryFeature {
         "Analyzes architectural boundaries and dependency directions. " +
        $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{USAGE_DEPENDENCY}`, `{INTERFACE}`";
 
+    internal const string DDD = "domain-driven-design";
+    internal const string DDD_EXPL =
+         "Domain-Driven Design principles: Bounded Contexts, Entities, Value Objects, Aggregate Roots, domain layer purity, encapsulation invariants. " +
+         "Analyzes tactical DDD pattern compliance and aggregate boundary integrity. " + 
+        $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{USAGE_DEPENDENCY}`, `{INTERFACE}`, `{INHERITANCE_AND_BASE_CLASS}`";
+
+
     internal const string ENCAPSULATION_AND_VISIBILITY = "encapsulation-and-visibility";
     internal const string ENCAPSULATION_AND_VISIBILITY_EXPL =
         "Use for access modifiers and visibility analysis. " +

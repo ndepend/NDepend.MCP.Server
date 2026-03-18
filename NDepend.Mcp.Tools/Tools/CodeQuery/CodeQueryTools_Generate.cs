@@ -94,6 +94,7 @@ public static partial class CodeQueryTools {
                      `{CodeQueryFeature.INTERFACE}`: {CodeQueryFeature.INTERFACE_EXPL}
                      `{CodeQueryFeature.SOLID_PRINCIPLES}`: {CodeQueryFeature.SOLID_PRINCIPLES_EXPL}
                      `{CodeQueryFeature.CLEAN_ARCHITECTURE}`: {CodeQueryFeature.CLEAN_ARCHITECTURE_EXPL}
+                     `{CodeQueryFeature.DDD}`: {CodeQueryFeature.DDD_EXPL}
                      `{CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY}`: {CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY_EXPL}
                      `{CodeQueryFeature.STATE_MUTABILITY}`: {CodeQueryFeature.STATE_MUTABILITY_EXPL}
                      
@@ -156,6 +157,7 @@ public static partial class CodeQueryTools {
                     CodeQueryFeature.INTERFACE => CodeQueryFeature.INTERFACE_PROMPT,
                     CodeQueryFeature.SOLID_PRINCIPLES => CodeQueryFeature.SOLID_PRINCIPLES_PROMPT,
                     CodeQueryFeature.CLEAN_ARCHITECTURE => CodeQueryFeature.CLEAN_ARCHITECTURE_PROMPT,
+                    CodeQueryFeature.DDD => CodeQueryFeature.DDD_PROMPT,
                     CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY => CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY_PROMPT,
                     CodeQueryFeature.STATE_MUTABILITY => CodeQueryFeature.STATE_MUTABILITY_PROMPT,
                     CodeQueryFeature.DIFF_SINCE_BASELINE => CodeQueryFeature.DIFF_SINCE_BASELINE_PROMPT,
