@@ -2,10 +2,11 @@ namespace NDepend.Mcp.Tools.CodeQuery;
 internal partial class CodeQueryFeature {
     internal const string SOURCE_FILE_DECLARATION_PROMPT =
           """
-          # CODE ELEMENT SOURCE FILE DECLARATIONS
+          # Code Element Source File Declaration
           
-          ## Overview
-          Code elements in this API expose source file location information through the `ICodeElement` interface. This guide explains how to access and work with source file declarations.
+          Code elements expose source location via `ICodeElement`. A element can have zero, one, or multiple declarations (e.g. partial classes, namespaces span files; external types have none).
+
+          **IMPORTANT**: Always check `SourceFileDeclAvailable` before accessing `SourceDecls`.
           
           ## Key Concepts
           
@@ -16,98 +17,65 @@ internal partial class CodeQueryFeature {
           - **Regular classes**: Typically one declaration
           - **External/compiled types**: May have zero declarations
           
-          ## API Reference
-          
-          ### ICodeElement Properties
+          ## API
+
+          ### ICodeElement
           ```csharp
           IEnumerable<ISourceDecl> SourceDecls { get; }
           bool SourceFileDeclAvailable { get; }
           ```
-          
-          **IMPORTANT**: Always check `SourceFileDeclAvailable` before accessing `SourceDecls` to avoid runtime errors.
-                 
-          ### ISourceDecl Properties
+
+          ### ISourceDecl
           ```csharp
-          ISourceFile SourceFile { get; }    // The source file containing this declaration
-          uint Line { get; }                 // 1-based line number
-          uint Column { get; }               // 1-based column number
+          ISourceFile SourceFile { get; }
+          uint Line { get; }    // 1-based
+          uint Column { get; }  // 1-based
           ```
+
+          ### ISourceFile
+          - `IAbsoluteFilePath FilePath` / `string FilePathString` / `string FileName` / `string FileNameWithoutExtension`
+          - `SourceFileLanguage Language` – CSharp, VBNet, FSharp, Other
+          - `IEnumerable<ICodeElement> CodeElements`, `uint NbLines`, `uint NbCharacters`
+          - `uint? NbLinesOfCode`, `uint NbLinesOfComment`, `uint? NbILInstructions`
+          - `bool CoverageDataAvailable`, `float? PercentageCoverage`, `uint? NbLinesOfCodeCovered`, `uint? NbLinesOfCodeNotCovered`
+
+          ## Patterns
           
-          ### ISourceFile Properties
+          **Never** start a `select` tuple with a source file (its path or its name).
+          A `select` tuple must always begin with code elements only.
+          Source file information may be included, but only as additional fields—not as the leading element.
+
+          There is no `SourceFiles` domain. Always access the source file via `elem.SourceDecls.First().SourceFile`.
           
-          **File Identification:**
-          - `IAbsoluteFilePath FilePath` – Absolute file path object
-          - `string FilePathString` – Path as string
-          - `string FileName` – File name with extension (e.g., "Program.cs")
-          - `string FileNameWithoutExtension` – File name only (e.g., "Program")
-          - `SourceFileLanguage Language` – CSharp, VBNet, FSharp, or Other
-          
-          **Code Metrics:**
-          - `IEnumerable<ICodeElement> CodeElements` – All code elements declared in this file
-          - `uint NbLines` – Total physical lines
-          - `uint NbCharacters` – Total characters
-          - `uint? NbLinesOfCode` – Lines of code (nullable)
-          - `uint NbLinesOfComment` – Lines containing comments
-          - `uint? NbILInstructions` – Compiled IL instructions (nullable)
-          
-          **Code Coverage:**
-          - `bool CoverageDataAvailable` – True if coverage data exists
-          - `float? PercentageCoverage` – Coverage percentage (0-100, nullable)
-          - `uint? NbLinesOfCodeCovered` – Covered lines count (nullable)
-          - `uint? NbLinesOfCodeNotCovered` – Uncovered lines count (nullable)
-          
-          ## Common Patterns
-          
-          ### Pattern 1: Safe Access to Source Declarations
           ```csharp
+          // Safe single access
           from m in Application.Methods
           where m.SourceFileDeclAvailable
-          let sourceDecl = m.SourceDecls.FirstOrDefault()
-          where sourceDecl != null
-          select new { m, sourceDecl.SourceFile }
-          ```
+          let decl = m.SourceDecls.FirstOrDefault()
+          where decl != null
+          select new { m, decl.SourceFile.FilePath }
           
-          ### Pattern 2: Handling Single Declaration
-          ```csharp
-          from t in Application.Types
-          where t.SourceFileDeclAvailable && t.SourceDecls.Count() == 1
-          let decl = t.SourceDecls.Single()
-          select new { t, decl.SourceFile.FilePathString, decl.Line }
-          ```
-          
-          ### Pattern 3: Handling Multiple Declarations
-          ```csharp
+          // Multiple declarations (e.g. partial types)
           from t in Application.Types.Where(t => t.SourceFileDeclAvailable)
           from decl in t.SourceDecls
           select new { Type = t, File = decl.SourceFile.FileName, decl.Line }
-          ```
           
-          ## Examples
-          
-          ### Example 1: Filter by Directory Path
-          ```csharp
-          // <Name>Methods whose source is declared in a directory named Customer</Name>
+          // Filter by directory
           from m in Application.Methods
           where m.SourceFileDeclAvailable
           let parentDir = m.SourceDecls.Single().SourceFile.FilePath.ParentDirectoryPath.ToString()
           where parentDir.ContainsAny(@"\Customer\", @"/Customer/", StringComparison.OrdinalIgnoreCase)
           select m
-          ```
           
-          ### Example 2: Files with Multiple Type Declarations
-          ```csharp
-          // <Name>List types whose source file contains other types</Name>
-          
-          // Group types by their source file path, considering only types with a single declaration
-          let  groups = Application.Types
+          // Files with multiple type declarations
+          let lookup = Application.Types
               .Where(t => t.SourceFileDeclAvailable && t.SourceDecls.Count() == 1)
               .ToLookup(t => t.SourceDecls.Single().SourceFile.FilePathString, StringComparer.OrdinalIgnoreCase)
-          
-          // Flatten the groups and select types along with their source file path, ordered by file path
-          from t in groups.SelectMany(g => g)
+          from t in lookup.SelectMany(g => g)
           let filePath = t.SourceDecls.Single().SourceFile.FilePathString
           orderby filePath
           select new { t, filePath }
           ```
           """;
+
 }

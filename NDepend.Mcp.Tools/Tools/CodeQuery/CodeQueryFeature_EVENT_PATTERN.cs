@@ -4,13 +4,8 @@
         internal const string EVENT_PATTERN_PROMPT =
         """
         # NDepend: Event Memory Leak Detection Guide
-        
-        ## OBJECTIVE
-        Write CQLinq queries and use NDepend.API to detect potential memory leaks caused by improper event registration/deregistration patterns.
-        
-        ---
-        
-        ## APIS
+
+        ## APIs
         
         ### IEvent Interface
         Represents an event declaration.
@@ -27,34 +22,30 @@
             // Returns a sequence of IMember object that contains the available get method, set method and backing field for this property.
             IEnumerable<IMember> AccessorsAndBackingField { get; }
             
-            IEnumerable<IMethod> MethodsSubscribingToMe { get; }    // Methods subscribing to this event
-            IEnumerable<IMethod> MethodsUnsubscribingToMe { get; }  // Methods unsubscribing from this even
-            
-            IType EventType { get; }        // Delegate type (e.g., EventHandler)  (might be null)
-           
-            // Event metadata
+            IEnumerable<IMethod> MethodsSubscribingToMe { get; }
+            IEnumerable<IMethod> MethodsUnsubscribingToMe { get; }
+            IType EventType { get; }        // Delegate type (e.g., EventHandler) — may be null
             bool IsStatic { get; }
             bool IsAbstract { get; }
             bool IsVirtual { get; }
             bool IsNewSlot { get; }
             bool IsFinal { get; }
             bool IsExplicitInterfaceImpl { get; }
+            IEnumerable<IMethod> MethodsUsingMe { get; }
+            IEnumerable<IMethod> MethodsCalled { get; }
+            IEnumerable<IMember> MembersUsed { get; }
+            IEnumerable<IField> FieldsUsed { get; }
+            IEnumerable<IField> FieldsAssigned { get; }
             
-            // Gets a sequence of events declared in this event's derived types, overriding this event. If this event is not overridden, gets an empty sequence.
+            // Events in derived types overriding this event (empty if none)
             IEnumerable<IEvent> OverridesDerived { get; }
 
-            // Gets a sequence of events declared in this event's direct derived types, overriding this event. If this event is not overridden, gets an empty sequence.
+            // Events in direct derived types overriding this event (empty if none)
             IEnumerable<IEvent> OverridesDirectDerived { get; }
 
-            // Gets a sequence of events declared in this event's base classes and implemented interfaces, overridden by this event. If this event doesn't override any event, gets an empty sequence.
+            // Base/interface events overridden by this event (empty if none)
             IEnumerable<IEvent> OverriddensBase { get; }
 
-            IEnumerable<IMethod> MethodsUsingMe { get; }            // Methods interacting with this event
-
-            IEnumerable<IMethod> MethodsCalled { get; }             // Methods called by this event (if any)
-            IEnumerable<IMember> MembersUsed { get; }               // Members used by this event
-            IEnumerable<IField> FieldsUsed { get; }                 // Fields used by this event
-            IEnumerable<IField> FieldsAssigned { get; }             // Fields assigned by this event
         }
         ```
         

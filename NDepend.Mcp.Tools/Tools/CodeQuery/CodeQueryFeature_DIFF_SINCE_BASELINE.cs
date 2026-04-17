@@ -2,43 +2,24 @@
 internal partial class CodeQueryFeature {
     internal const string DIFF_SINCE_BASELINE_PROMPT =
          """
-         # DIFF SINCE BASELINE SUPPORT
-         
+         # Diff Since Baseline Support
+
          NDepend proposes to compare code changes against a baseline to see what was changed/added/removed.
          
-         ## EXTENSION METHODS FOR DIFF SINCE BASELINE:
+         ## Extension Methods:
+
+         // This methods return an ICodeElement?
+         Version nav: `OlderVersion()`, `NewerVersion()`, `MeInOtherBuild()`
          
-         In CQLinq, there are several ICodeElement extension methods to help writing queries that focus on code changes since the baseline:
+         // This methods return a bool
+         ICodeElement: `WasAdded()`, `WasRemoved()`, `WasChanged()`
+         Build context: `IsInNewerBuild()`, `IsInOlderBuild()`, `IsPresentInBothBuilds()`
+         Third-party: `IsUsedRecently()`, `IsNotUsedAnymore()`
+         ICodeContainer: `CodeWasChanged()`, `CommentsWereChanged()`
+         IMember: `VisibilityWasChanged()`, `BecameObsolete()`
          
-         - Change Detection
-         WasAdded() → bool  Returns true if this current code element was added since the baseline.
-         WasRemoved() → bool  Returns true if this baseline code element was removed since the baseline.
-         WasChanged() → bool  Returns true if this code element has been changed since the baseline.
-         
-         - Version Navigation
-         OlderVersion() → ICodeElement?  Returns the older version (in baseline) of this current code element if available, else returns null, returns null also when this element is in baseline.
-         NewerVersion() → ICodeElement?  Returns the newer version (in current) of this baseline code element if available, else returns null, returns null also when this element is in the current code snapshot.
-         MeInOtherBuild() → ICodeElement? Returns the version of the code element in the other build (baseline or current) if available.
-         
-         - Build Context
-         IsInNewerBuild() → bool Returns true if this code element belongs to the newer build (current) compared to the other build (baseline).
-         IsInOlderBuild() → bool Returns true if this code element belongs to the newer build (current) compared to the other build (baseline).
-         IsPresentInBothBuilds() → bool Returns true if this code element is present in both the baseline and current builds.
-         
-         - Third-Party Dependencies
-         IsUsedRecently() → bool Returns true if the code element is in a third-party assembly (or is a third-party assembly itself), and if it is used by the newer version of the code base, but not by the older version.
-         IsNotUsedAnymore() → bool Returns true if the code element is in a third-party assembly (or is a third-party assembly itself), and if it is used by the older version of the code base, but not by the newer version.
-         
-         - Extension methods on ICodeContainer:
-         CodeWasChanged() → bool Returns true if the code of this code container, has been modified.
-         CommentsWereChanged() → bool Returns true if comments of this code container, have been modified.
-         
-         - Extension methods on IMember:
-         VisibilityWasChanged() → bool Returns true if the visibility of this member has been changed.
-         BecameObsolete() → bool Returns true if the member is not tagged with 'System.ObsoleteAttribute' in the older version of the code base, but is tagged as obsolete in the newer version of the code base.
-         
-         ## DOMAINS RELATED TO DIFF SINCE BASELINE:
-         
+         ## Domains Related to Diff Since Baseline:
+
          Access current or baseline codebase using:
          
          ```csharp
@@ -47,8 +28,8 @@ internal partial class CodeQueryFeature {
          ```
          Then access codeBase sub-domains: .Methods, .Types, .Fields, etc.
          
-         ## PRACTICAL EXAMPLES
-         
+         ## Practical Examples
+
          Example 1: Methods with Increased Complexity
          ```csharp
          // <Name>Methods that became more complex</Name>
@@ -107,8 +88,8 @@ internal partial class CodeQueryFeature {
          select new { m, oldVis, newVis }
          ```
          
-         ## KEY PATTERNS
-         
+         ## Key Patterns
+
          Always null-check when navigating older or newer versions:
          ```csharp
          let older = m.OlderVersion()

@@ -2,16 +2,16 @@
     internal partial class CodeQueryFeature {
         internal const string CLEAN_ARCHITECTURE_PROMPT =
         """
-        # .NET CLEAN ARCHITECTURE WITH CQLINQ
-        
-        ## OBJECTIVE
+        # .NET Clean Architecture with CQLinq
+
+        ## Objective
         Use CQLinq queries and NDepend.API to generate query and rule to enforce Clean Architecture principles in .NET applications, detect layer violations, validate dependency rules, and ensure architectural boundaries are maintained.
+
+        ## APIs
+
+        ### Core Architecture APIs
         
-        ## APIS
-        
-        ### CORE ARCHITECTURE APIS
-        
-        #### USEFUL IAssembly MEMBERS
+        #### Useful IAssembly Members
         ```csharp
         interface IAssembly : ICodeElement {
             // Assembly metadata
@@ -37,7 +37,7 @@
         }
         ```
         
-        #### USEFUL INamespace MEMBERS
+        #### Useful INamespace Members
         ```csharp
         interface INamespace : ICodeElementParent {
             // Namespace metadata
@@ -63,7 +63,7 @@
         }
         ```
         
-        #### USEFUL IType MEMBERS
+        #### Useful IType Members
         ```csharp
         interface IType : ICodeElement {
             // Type metadata
@@ -100,53 +100,10 @@
         }
         ```
         
-        ### LAYER DETECTION EXTENSIONS
         
-        ```csharp
-        // Custom function for layer detection to declare before any 'from' 
-        let isInDomainLayer = new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Domain|Entities)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Domain")
-        )
-        let isInApplicationLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Application|UseCases)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Application")
-        )
-        let isInInfrastructureLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Infrastructure|Persistence)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Infrastructure")
-        )
-        let isInPresentationLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Presentation|UI|API|Web)($|\.)"))
-        ```
-        
-        ### ACCESSING ARCHITECTURE ELEMENTS
-        
-        ```csharp
-        // Get all assemblies in solution
-        IEnumerable<IAssembly> allAssemblies = Application.Assemblies;
-        
-        // Find specific layer assemblies
-        IAssembly domainAssembly = Application.Assemblies
-            .FirstOrDefault(a => a.Name.EndsWith(".Domain"));
-        
-        IAssembly applicationAssembly = Application.Assemblies
-            .FirstOrDefault(a => a.Name.EndsWith(".Application"));
-        
-        // Get types in specific namespace (layer)
-        IEnumerable<IType> domainTypes = Application.Types.Where(t => isInDomainLayer(t))
-        
-        // Check dependencies between layers
-        from t in domainTypes .UsingAny(infraTypes) 
-        let infraTypesUsed = infraTypes.Intersect(t.TypesUsed)
-        select new { t, infraTypesUsed }
-        ```
-        
-        ---
-        
-        ## CORE CONCEPTS
-        
-        ### CLEAN ARCHITECTURE LAYERS
+        ## Core Concepts
+
+        ### Clean Architecture Layers
         
         ```
         ┌─────────────────────────────────────────────────┐
@@ -171,9 +128,7 @@
         └─────────────────────────────────────────────────┘
         ```
         
-        ### THE DEPENDENCY RULE
-        
-        **CRITICAL PRINCIPLE**: Dependencies must point INWARD only.
+        ### The Dependency Rules
         
         ```
         Presentation    →  Application  ✅ OK
@@ -187,118 +142,55 @@
         Application     →  Infrastructure ❌ VIOLATION
         Application     →  Presentation   ❌ VIOLATION
         ```
-        
-        ### ENFORCING CLEAN ARCHITECTURE WITH A CQLINQ CODE RULE
-        
+
+        ## Enforcing Clean Architecture
+
         ```csharp
         // <Name>Enforcing Clean Architecture</Name>
         warnif count > 0
-        
-        let isInDomainLayer = new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Domain|Entities)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Domain")
+        let getLayerTypes = new Func<string, HashSet<IType>>(
+          names => Application.Types.Where(t => names.Split('|').Any(name =>
+            t.ParentNamespace.Name.EndsWith("." + name) ||
+            t.ParentNamespace.Name.Contains("." + name + ".") ||
+            t.ParentAssembly.Name.EndsWith("." + name)
+          )).ToHashSetEx()
         )
-        let isInApplicationLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Application|UseCases)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Application")
-        )
-        let isInInfrastructureLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Infrastructure|Persistence)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Infrastructure")
-        )
-        let isInPresentationLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Presentation|UI|API|Web)($|\.)"))
-        
-        let domainTypes = Application.Types.Where(t => isInDomainLayer(t))
-        let appTypes = Application.Types.Where(t => isInApplicationLayer(t)).ToHashSetEx()  // ToHashSetEx() for fast Intersect() calls below
-        let infraTypes = Application.Types.Where(t => isInInfrastructureLayer(t)).ToHashSetEx()
-        let presTypes = Application.Types.Where(t => isInPresentationLayer(t)).ToHashSetEx()
-        
-        // Domain          →  Application    ❌ VIOLATION
-        let a = from t in domainTypes.UsingAny(appTypes) 
-                let typesUsed = appTypes.Intersect(t.TypesUsed)
-                select new { type= t, typesUsed, error = "Domain must not use Application" }
-        
-        // Domain          →  Infrastructure ❌ VIOLATION
-        let b = from t in domainTypes.UsingAny(infraTypes) 
-                let typesUsed = infraTypes.Intersect(t.TypesUsed)
-                select new { type= t, typesUsed, error = "Domain must not use Infrastructure" }
-        
-        // Domain          →  Presentation   ❌ VIOLATION
-        let c = from t in domainTypes.UsingAny(presTypes) 
-                let typesUsed = presTypes.Intersect(t.TypesUsed)
-                select new { type= t, typesUsed, error = "Domain must not use Presentation" }
-        
-        // Application     →  Infrastructure ❌ VIOLATION
-        let d = from t in appTypes.UsingAny(infraTypes) 
-                let typesUsed = infraTypes.Intersect(t.TypesUsed)
-                select new { type= t, typesUsed, error = "Application must not use Infrastructure" }
-        
-        // Application     →  Presentation   ❌ VIOLATION
-        let e = from t in appTypes.UsingAny(presTypes) 
-                let typesUsed = presTypes.Intersect(t.TypesUsed)
-                select new { type= t, typesUsed, error = "Application must not use Presentation" }
-        
-        // Infrastructure  →  Presentation   ❌ VIOLATION
-        let f = from t in infraTypes.UsingAny(presTypes) 
-                let typesUsed = presTypes.Intersect(t.TypesUsed)
-                select new { type= t, typesUsed, error = "Infrastructure must not use Presentation" }
-        
-        from x in a.Concat(b).Concat(c).Concat(d).Concat(e).Concat(f)
-        select new { x.type, x.typesUsed, x.error }
-        ```
-        
-        ### ENFORCING DOMAIN LAYER PURITY (NO EXTERNAL DEPENDENCIES)
-        
-        ```csharp
-        // Domain layer must have ZERO external dependencies
-        warnif count > 0
-              
-        let isInDomainLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Application|UseCases)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Application")
-        )
-        let domainTypes = Application.Types.Where(t => isInDomainLayer(t)).ToHashSetEx()
-          
-        from t in domainTypes 
-          
-        // Check for forbidden dependencies
-        from tUsed in t.TypesUsed
-        where !tUsed.IsThirdParty &&  // Allow framework types like string, int
-               tUsed.ParentNamespace != t.ParentNamespace &&  // External namespace or assembly
-               !domainTypes.Contains(tUsed) // tUsed innnot in Domain
-                            
-        select new {
-            t,
-            domainTypes
+
+        // Define layers 
+        let layers = new[] {
+            new { Name = "Domain", 
+                  Types = getLayerTypes("Domain|Entities") },
+            new { Name = "Application", 
+                  Types = getLayerTypes("Application|UseCases") },
+            new { Name = "Infrastructure", 
+                  Types = getLayerTypes("Infrastructure|Persistence") },
+            new { Name = "Presentation", 
+                  Types = getLayerTypes("Presentation|UI|API|Web") }
         }
-        ```
-        
-        
-        ### DOMAIN ENTITIES POLLUTED WITH EF/ORM ATTRIBUTES
-        
-        ```csharp
-        // Domain entities polluted with EF/ORM attributes
-        warnif count > 0
-              
-        let isInDomainLayer= new Predicate<IType>(t =>
-            t.ParentNamespace.NameLike(@"^.*\.(Application|UseCases)($|\.)") ||
-            t.ParentAssembly.Name.EndsWith(".Application")
-        )
-        let domainTypes = Application.Types.Where(t => isInDomainLayer(t)).ToHashSetEx()
-          
-        from t in domainTypes 
-        from tag in t.AttributeTagsOnMe
-        where tag.AttributeType.FullName.ContainsAny(
-           "EntityFramework", "Table", "Column",
-           "Key", "Required", "DataAnnotations",
-           "Json", "Xml"
-        )            
-        
+
+        // Define forbidden dependencies as anonymous types
+        let forbiddenDeps = new[] {
+            new { From = "Domain",         To = "Application" },
+            new { From = "Domain",         To = "Infrastructure" },
+            new { From = "Domain",         To = "Presentation" },
+            new { From = "Application",    To = "Infrastructure" },
+            new { From = "Application",    To = "Presentation" },
+            new { From = "Infrastructure", To = "Presentation" }
+        }
+
+        // Search for forbidden dependencies
+        from dep in forbiddenDeps
+        let sourceLayer = layers.First(l => l.Name == dep.From)
+        let targetLayer = layers.First(l => l.Name == dep.To)
+        from tUser  in sourceLayer.Types.UsingAny(targetLayer.Types)
+        let typesUsed = targetLayer.Types.Intersect(tUser.TypesUsed)
+        from tUsed in typesUsed
         select new {
-            t,
-            tag.AttributeType,
-            @params = tag.Parameters.Select(p =>p.Name +": "+p.Value.ToString()).Aggregate("    ")
+            tUser,
+            tUsed,
+            error = dep.From + " must not use " + dep.To,
+            Debt = 7.ToMinutes().ToDebt(),
+            Severity = Severity.High
         }
         ```
         """;

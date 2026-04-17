@@ -2,25 +2,18 @@ namespace NDepend.Mcp.Tools.CodeQuery;
 internal partial class CodeQueryFeature {
     internal const string ATTRIBUTE_PROMPT =
           """
-          # ATTRIBUTES IN CQLINQ
-          
-          # OVERVIEW
-          
-          NDepend provides comprehensive support for querying attribute classes and code elements decorated with attributes.
-          
-          ## QUERYING ATTRIBUTES CLASSES
+          # Attributes in CQLinq
+
+          ## Querying Attribute Classes
           
           Query all attribute classes (custom or built-in):
           ```csharp
           Types.Where(t => t.IsAttributeClass)
           ```
           
-          ## QUERYING CODE ELEMENTS DECORATED WITH A SPECIFIC ATTRIBUTE
-          
-          The interface IAttributeTarget represents a code element that can be tagged with an attribute.
-          It is implemented by IAssembly, IType, IMethod, IField, IProperty, and IEvent.
-          
-          IAttributeTarget has this methods and properties:
+          ## Querying Code Elements Decorated with a Specific Attribute
+
+          IAttributeTarget (implemented by IAssembly, IType, IMethod, IField, IProperty, IEvent):
           ```csharp
           HasAttribute(IType attributeClass) // Returns true if this code element is tagged by the attributeClass
           HasAttribute(string attributeClassFullName) // Returns true if this code element is tagged by the attribute class specified by full name.
@@ -29,20 +22,17 @@ internal partial class CodeQueryFeature {
           IEnumerable<IType> AttributeClassesThatTagMe { get; } // Returns a sequence of attribute classes that tag this code element.
           ```
           
-          ## QUERYING ATTRIBUTE TAGS
-          
-          The interface IAttributeTag represents an attribute instance that tags a code element.
-          You can obtains an IAttributeTag instance from the various methods and properties of IAttributeTarget.
-          
+          ## Querying Attribute Tags
+
           ```csharp
-          IAttributeTag has this methods and properties:
+          // IAttributeTag
           IAttributeTarget CodeElementTagged { get; } // The code element tagged.
           IType AttributeType { get; } // Get the attribute class of the attribute tag.
           IValue ValueOf(string paramName) // Get the value of the parameter named "paramName".
           IReadOnlyList<IAttributeTagParameter> Parameters { get; } // Gets all parameters of this attribute tag.
           ```
           
-          ## PRACTICAL EXAMPLES
+          ## Practical Examples
           
           Example 1: Find Decorated Elements
           ```csharp
@@ -134,7 +124,7 @@ internal partial class CodeQueryFeature {
           ```
           
           
-          ## KEY PATTERNS
+          ## Key Patterns
           
           Access Constructor Arguments by Position
           ```csharp

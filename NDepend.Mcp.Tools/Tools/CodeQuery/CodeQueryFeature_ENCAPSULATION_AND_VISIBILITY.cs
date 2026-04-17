@@ -35,7 +35,7 @@ internal partial class CodeQueryFeature {
          OptimalVisibility is a Visibility value that represents the most restrictive visibility a member can have without breaking compilation.
          For example, an internal method that is used only within its declaring class has an OptimalVisibility of Private.
          
-         The interface IMember also has these properties that can be use to simplfy a code query: `IsPublic`, `IsInternal`, `IsPrivate`, `IsProtected`, `IsProtectedOrInternal`, and `IsProtectedAndInternal`.
+         The interface IMember also has these properties that can be use to simplify a code query: `IsPublic`, `IsInternal`, `IsPrivate`, `IsProtected`, `IsProtectedOrInternal`, `IsProtectedAndInternal`.
          
          The interface IMember also exposes the IsPubliclyVisible (bool) property, which indicates whether the member is accessible from outside the assembly.
          This is useful because for example, a method declared public in an internal type is not publicly visible.
@@ -99,21 +99,5 @@ internal partial class CodeQueryFeature {
          select t
          ```
          
-         ## COMMON ANALYSIS SCENARIOS
-         
-         ### Scenario 1: Find Encapsulation Violations
-         Identify public fields, over-exposed members, and accessibility issues.
-         
-         ### Scenario 2: API Surface Audit
-         Calculate and list the complete public API to understand what’s exposed.
-         
-         ### Scenario 3: Visibility Refinement
-         Find members that could be more restrictive (public → internal → private).
-         
-         ### Scenario 4: Framework Design Review
-         Ensure proper separation between public contracts and internal implementation.
-         
-         ### Scenario 5: Breaking Change Analysis
-         Identify what visibility changes would be breaking vs. non-breaking.
          """;
 }

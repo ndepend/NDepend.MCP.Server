@@ -1,13 +1,76 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
 
 internal static partial class CodeQueryFeature {
+    internal static bool TryGetFeaturePrompt(string feature, out string featurePrompt) {
+        featurePrompt = feature switch {
+            ESSENTIAL => ESSENTIAL_PROMPT,
+            LINE_OF_CODE => LINE_OF_CODE_PROMPT,
+            MAINTAINABILITY => MAINTAINABILITY_PROMPT,
+            COMPLEXITY => COMPLEXITY_PROMPT,
+            COVERAGE => COVERAGE_PROMPT,
+            COMMENT => COMMENT_PROMPT,
+            DIRECT_DEPENDENCY => DIRECT_DEPENDENCY_PROMPT,
+            INDIRECT_DEPENDENCY => INDIRECT_DEPENDENCY_PROMPT,
+            ARCHITECTURE_VIOLATION => ARCHITECTURE_VIOLATION_PROMPT,
+            PARENT_CHILDREN_RELATIONSHIP => PARENT_CHILDREN_RELATIONSHIP_PROMPT,
+            INHERITANCE_AND_BASE_CLASS => INHERITANCE_AND_BASE_CLASS_PROMPT,
+            INTERFACE => INTERFACE_PROMPT,
+            SOLID_PRINCIPLES => SOLID_PRINCIPLES_PROMPT,
+            CLEAN_ARCHITECTURE => CLEAN_ARCHITECTURE_PROMPT,
+            DDD => DDD_PROMPT,
+            ENCAPSULATION_AND_VISIBILITY => ENCAPSULATION_AND_VISIBILITY_PROMPT,
+            STATE_MUTABILITY => STATE_MUTABILITY_PROMPT,
+            DIFF_SINCE_BASELINE => DIFF_SINCE_BASELINE_PROMPT,
+            NAMING => NAMING_PROMPT,
+            ATTRIBUTE => ATTRIBUTE_PROMPT,
+            SOURCE_FILE_DECLARATION => SOURCE_FILE_DECLARATION_PROMPT,
+            EVENT_PATTERN => EVENT_PATTERN_PROMPT,
+            CONSTRUCTOR_INSTANTIATION => CONSTRUCTOR_INSTANTIATION_PROMPT,
+            _ => ""
+        };
+        return featurePrompt.Length > 0;
+    }
+
+    internal const string QUERY_FEATURE_PARAM_DESC =
+        $"""
+         Select ALL applicable features. Include 5+ if needed - better to over-specify than miss aspects.
+         
+         ONLY use exact identifiers below (`identifier` :`explanation`):
+         
+         `{LINE_OF_CODE}`: {LINE_OF_CODE_EXPL}
+         `{MAINTAINABILITY}`: {MAINTAINABILITY_EXPL}
+         `{COMPLEXITY}`: {COMPLEXITY_EXPL}
+         `{COVERAGE}`: {COVERAGE_EXPL}
+         `{COMMENT}`: {COMMENT_EXPL}
+         
+         `{DIRECT_DEPENDENCY}`: {DIRECT_DEPENDENCY_EXPL}
+         `{INDIRECT_DEPENDENCY}`: {INDIRECT_DEPENDENCY_EXPL}
+         `{ARCHITECTURE_VIOLATION}`: {ARCHITECTURE_VIOLATION_EXPL}
+         `{PARENT_CHILDREN_RELATIONSHIP}`: {PARENT_CHILDREN_RELATIONSHIP_EXPL}
+         `{INHERITANCE_AND_BASE_CLASS}`: {INHERITANCE_AND_BASE_CLASS_EXPL}
+         `{INTERFACE}`: {INTERFACE_EXPL}
+         `{SOLID_PRINCIPLES}`: {SOLID_PRINCIPLES_EXPL}
+         `{CLEAN_ARCHITECTURE}`: {CLEAN_ARCHITECTURE_EXPL}
+         `{DDD}`: {DDD_EXPL}
+         `{ENCAPSULATION_AND_VISIBILITY}`: {ENCAPSULATION_AND_VISIBILITY_EXPL}
+         `{STATE_MUTABILITY}`: {STATE_MUTABILITY_EXPL}
+         
+         `{DIFF_SINCE_BASELINE}`: {DIFF_SINCE_BASELINE_EXPL}
+         `{NAMING}`: {NAMING_EXPL}
+         `{ATTRIBUTE}`: {ATTRIBUTE_EXPL}
+         `{SOURCE_FILE_DECLARATION}`: {SOURCE_FILE_DECLARATION_EXPL}
+         `{EVENT_PATTERN}`: {EVENT_PATTERN_EXPL}
+         `{CONSTRUCTOR_INSTANTIATION}`: {CONSTRUCTOR_INSTANTIATION_EXPL}
+         """;
 
     // Define NDepend query features.
     // LLM identifies relevant features for the user's request and retrieves their prompts.
     internal const string ESSENTIAL = "code-query-essential";
-    internal const string ESSENTIAL_EXPL =
-        "ALWAYS REQUIRED: Provides fundamental structure, syntax, and available domains (JustMyCode, Application, ThirdParty). " +
-        "MUST be included for every query generation.";
+
+    // ESSENTIAL_EXPL not needed since ESSENTIAL prompt is always selected to educate the LLM about querying structure
+    //internal const string ESSENTIAL_EXPL =
+    //    "ALWAYS REQUIRED: Provides fundamental structure, syntax, and available domains (JustMyCode, Application, ThirdParty). " +
+    //    "MUST be included for every query generation.";
 
     internal const string LINE_OF_CODE = "line-of-code";
     internal const string LINE_OF_CODE_EXPL =
@@ -34,10 +97,22 @@ internal static partial class CodeQueryFeature {
         "Use for comment metrics (percentage, documentation). " +
         "Applies to: methods, types, namespaces, projects, entire codebase.";
 
-    internal const string USAGE_DEPENDENCY = "usage-dependency";
-    internal const string USAGE_DEPENDENCY_EXPL =
-        "Use for analyzing relationships between code elements (usage, coupling). " +
+    internal const string DIRECT_DEPENDENCY = "direct-dependency";
+    internal const string DIRECT_DEPENDENCY_EXPL =
+        "Use for analyzing direct relationships between code elements (usage, coupling). " +
         "Includes: method/type/namespace/project dependencies and references.";
+
+    internal const string INDIRECT_DEPENDENCY = "indirect-dependency";
+    internal const string INDIRECT_DEPENDENCY_EXPL =
+        "Analyze transitive dependencies between code elements. " +
+        "Covers indirect usages and references through dependency chains across methods, types, namespaces, and projects." +
+        $"Also select: ``{DIRECT_DEPENDENCY}`";
+
+    internal const string ARCHITECTURE_VIOLATION = "architecture-violation";
+    internal const string ARCHITECTURE_VIOLATION_EXPL =
+        "Detect violations of architectural rules and boundaries. " +
+        "Covers forbidden or unintended dependencies across methods, types, namespaces, and projects." +
+        $"Also select: ``{DIRECT_DEPENDENCY}`";
 
     internal const string PARENT_CHILDREN_RELATIONSHIP = "parent-children-relationship";
     internal const string PARENT_CHILDREN_RELATIONSHIP_EXPL =
@@ -59,19 +134,19 @@ internal static partial class CodeQueryFeature {
     internal const string SOLID_PRINCIPLES_EXPL =
         "SOLID design principles: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion. " +
         "Analyzes Object Oriented design quality and architectural robustness. " +
-       $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{USAGE_DEPENDENCY}`, `{INTERFACE}`, `{INHERITANCE_AND_BASE_CLASS}`";
+       $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{DIRECT_DEPENDENCY}`, `{INTERFACE}`, `{INHERITANCE_AND_BASE_CLASS}`";
 
     internal const string CLEAN_ARCHITECTURE = "clean-architecture";
     internal const string CLEAN_ARCHITECTURE_EXPL =
         "Clean Architecture principles: separation of concerns, independent layers, business rules independent from frameworks/UI/infrastructure. " +
         "Analyzes architectural boundaries and dependency directions. " +
-       $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{USAGE_DEPENDENCY}`, `{INTERFACE}`";
+       $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{DIRECT_DEPENDENCY}`, `{INTERFACE}`";
 
     internal const string DDD = "domain-driven-design";
     internal const string DDD_EXPL =
          "Domain-Driven Design principles: Bounded Contexts, Entities, Value Objects, Aggregate Roots, domain layer purity, encapsulation invariants. " +
          "Analyzes tactical DDD pattern compliance and aggregate boundary integrity. " + 
-        $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{USAGE_DEPENDENCY}`, `{INTERFACE}`, `{INHERITANCE_AND_BASE_CLASS}`";
+        $"Also select: `{NAMING}`, `{PARENT_CHILDREN_RELATIONSHIP}`, `{DIRECT_DEPENDENCY}`, `{INTERFACE}`, `{INHERITANCE_AND_BASE_CLASS}`";
 
 
     internal const string ENCAPSULATION_AND_VISIBILITY = "encapsulation-and-visibility";

@@ -2,11 +2,36 @@
 namespace NDepend.Mcp.Tools.CodeQuery; 
 internal static partial class CodeQueryKind {
 
+    internal static bool TryGetKindPrompt(string kind, out string kindPrompt) { 
+        kindPrompt = kind switch {
+            CODE_RULE => CODE_RULE_PROMPT,
+            QUALITY_GATE => QUALITY_GATE_PROMPT,
+            QUERYING_ISSUE_AND_RULE => QUERYING_ISSUE_AND_RULE_PROMPT,
+            TREND_METRIC => TREND_METRIC_PROMPT,
+            CODE_QUERY_SCALAR => CODE_QUERY_SCALAR_PROMPT,
+            _ => ""
+        };
+        return kindPrompt.Length > 0;
+    }
+
+    internal const string QUERY_KIND_PARAM_DESC =
+        $"""
+         Specifies query kind. Tool returns generation instructions.
+         
+         ONLY use a single exact identifier below (`identifier` :`explanation`):
+         `{CODE_QUERY_LIST}` : {CODE_QUERY_LIST_EXPL}
+         `{CODE_RULE}` : {CODE_RULE_EXPL}
+         `{QUALITY_GATE}` : {QUALITY_GATE_EXPL}
+         `{QUERYING_ISSUE_AND_RULE}` : {QUERYING_ISSUE_AND_RULE_EXPL}
+         `{TREND_METRIC}` : {TREND_METRIC_EXPL}
+         `{CODE_QUERY_SCALAR}` : {CODE_QUERY_SCALAR_EXPL}
+         """;
+
     internal const string CODE_QUERY_LIST = "code-query-list";
     internal const string CODE_QUERY_LIST_EXPL =
         "C# LINQ query returning a collection of code elements with properties, dependencies, and metrics. " +
         "Each row contains one element plus computed fields.";
-    // There is no special prompt for list code query since it is the default one and covered by feature 'essential'.
+    // There is no special prompt for code query list since it is the default one and covered by the feature 'essential'.
 
     internal const string CODE_RULE = "code-rule";
     internal const string CODE_RULE_EXPL =

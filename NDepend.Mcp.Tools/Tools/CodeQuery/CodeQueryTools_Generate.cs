@@ -40,7 +40,7 @@ public static partial class CodeQueryTools {
                    
                    ## Result
                    
-                   Returns detailed prompts for query kind and each feature explaining query construction. First prompt is always `{CodeQueryFeature.ESSENTIAL}`
+                   Returns detailed prompts for query kind and each feature explaining query construction.
                    
                    ## Example Usage
                    "Methods that call each other"
@@ -57,53 +57,14 @@ public static partial class CodeQueryTools {
                 ILogger<CodeQueryToolsLog> logger,
 
 
-                [Description(
-                    $"""
-                     Specifies query kind. Tool returns generation instructions.
-                     
-                     ONLY use an exact identifier below (`identifier` :`explanation`):
-                     `{CodeQueryKind.CODE_QUERY_LIST}` : {CodeQueryKind.CODE_QUERY_LIST_EXPL}
-                     `{CodeQueryKind.CODE_RULE}` : {CodeQueryKind.CODE_RULE_EXPL}
-                     `{CodeQueryKind.QUALITY_GATE}` : {CodeQueryKind.QUALITY_GATE_EXPL}
-                     `{CodeQueryKind.QUERYING_ISSUE_AND_RULE}` : {CodeQueryKind.QUERYING_ISSUE_AND_RULE_EXPL}
-                     `{CodeQueryKind.TREND_METRIC}` : {CodeQueryKind.TREND_METRIC_EXPL}
-                     `{CodeQueryKind.CODE_QUERY_SCALAR}` : {CodeQueryKind.CODE_QUERY_SCALAR_EXPL}
-                     """)]
+                [Description(CodeQueryKind.QUERY_KIND_PARAM_DESC)]
                 string codeQueryKind,
 
                 [Description(
                     $"""
                      Features the query targets. Tool returns generation prompt for each.
                      
-                     Select ALL applicable features. Include 5+ if needed - better to over-specify than miss aspects.
-                     
-                     ONLY use exact identifiers below (`identifier` :`explanation`):
-                     `{CodeQueryFeature.ESSENTIAL}` : {CodeQueryFeature.ESSENTIAL_EXPL}
-                     
-                     `{CodeQueryFeature.LINE_OF_CODE}` : {CodeQueryFeature.LINE_OF_CODE_EXPL}
-                     `{CodeQueryFeature.ESSENTIAL}`: {CodeQueryFeature.ESSENTIAL_EXPL}
-                     `{CodeQueryFeature.LINE_OF_CODE}`: {CodeQueryFeature.LINE_OF_CODE_EXPL}
-                     `{CodeQueryFeature.MAINTAINABILITY}`: {CodeQueryFeature.MAINTAINABILITY_EXPL}
-                     `{CodeQueryFeature.COMPLEXITY}`: {CodeQueryFeature.COMPLEXITY_EXPL}
-                     `{CodeQueryFeature.COVERAGE}`: {CodeQueryFeature.COVERAGE_EXPL}
-                     `{CodeQueryFeature.COMMENT}`: {CodeQueryFeature.COMMENT_EXPL}
-                     
-                     `{CodeQueryFeature.USAGE_DEPENDENCY}`: {CodeQueryFeature.USAGE_DEPENDENCY_EXPL}
-                     `{CodeQueryFeature.PARENT_CHILDREN_RELATIONSHIP}`: {CodeQueryFeature.PARENT_CHILDREN_RELATIONSHIP_EXPL}
-                     `{CodeQueryFeature.INHERITANCE_AND_BASE_CLASS}`: {CodeQueryFeature.INHERITANCE_AND_BASE_CLASS_EXPL}
-                     `{CodeQueryFeature.INTERFACE}`: {CodeQueryFeature.INTERFACE_EXPL}
-                     `{CodeQueryFeature.SOLID_PRINCIPLES}`: {CodeQueryFeature.SOLID_PRINCIPLES_EXPL}
-                     `{CodeQueryFeature.CLEAN_ARCHITECTURE}`: {CodeQueryFeature.CLEAN_ARCHITECTURE_EXPL}
-                     `{CodeQueryFeature.DDD}`: {CodeQueryFeature.DDD_EXPL}
-                     `{CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY}`: {CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY_EXPL}
-                     `{CodeQueryFeature.STATE_MUTABILITY}`: {CodeQueryFeature.STATE_MUTABILITY_EXPL}
-                     
-                     `{CodeQueryFeature.DIFF_SINCE_BASELINE}`: {CodeQueryFeature.DIFF_SINCE_BASELINE_EXPL}
-                     `{CodeQueryFeature.NAMING}`: {CodeQueryFeature.NAMING_EXPL}
-                     `{CodeQueryFeature.ATTRIBUTE}`: {CodeQueryFeature.ATTRIBUTE_EXPL}
-                     `{CodeQueryFeature.SOURCE_FILE_DECLARATION}`: {CodeQueryFeature.SOURCE_FILE_DECLARATION_EXPL}
-                     `{CodeQueryFeature.EVENT_PATTERN}`: {CodeQueryFeature.EVENT_PATTERN_EXPL}
-                     `{CodeQueryFeature.CONSTRUCTOR_INSTANTIATION}`: {CodeQueryFeature.CONSTRUCTOR_INSTANTIATION_EXPL}
+                     {CodeQueryFeature.QUERY_FEATURE_PARAM_DESC}
                      """)]
                 string[] features,
 
@@ -130,44 +91,16 @@ public static partial class CodeQueryTools {
             };
 
             // Eventually include code-query-kind prompt
-            string kindPrompt = codeQueryKind switch {
-                CodeQueryKind.CODE_RULE => CodeQueryKind.CODE_RULE_PROMPT,
-                CodeQueryKind.QUALITY_GATE => CodeQueryKind.QUALITY_GATE_PROMPT,
-                CodeQueryKind.QUERYING_ISSUE_AND_RULE => CodeQueryKind.QUERYING_ISSUE_AND_RULE_PROMPT,
-                CodeQueryKind.TREND_METRIC => CodeQueryKind.TREND_METRIC_PROMPT,
-                CodeQueryKind.CODE_QUERY_SCALAR => CodeQueryKind.CODE_QUERY_SCALAR_PROMPT,
-                _ => ""
-            };
-            if(kindPrompt.Length > 0) {
+            if (CodeQueryKind.TryGetKindPrompt(codeQueryKind, out string kindPrompt)) {
                 prompts.Add(codeQueryKind, new CodeQueryFeaturePromptInfo(codeQueryKind, kindPrompt));
             }
 
             // Append feature prompts
             foreach (var feature in features) {
                 if(prompts.ContainsKey(feature)) { continue; }
-                string prompt = feature switch {
-                    CodeQueryFeature.LINE_OF_CODE => CodeQueryFeature.LINE_OF_CODE_PROMPT,
-                    CodeQueryFeature.MAINTAINABILITY => CodeQueryFeature.MAINTAINABILITY_PROMPT,
-                    CodeQueryFeature.COMPLEXITY => CodeQueryFeature.COMPLEXITY_PROMPT,
-                    CodeQueryFeature.COVERAGE => CodeQueryFeature.COVERAGE_PROMPT,
-                    CodeQueryFeature.COMMENT => CodeQueryFeature.COMMENT_PROMPT,
-                    CodeQueryFeature.USAGE_DEPENDENCY => CodeQueryFeature.USAGE_DEPENDENCY_PROMPT,
-                    CodeQueryFeature.PARENT_CHILDREN_RELATIONSHIP => CodeQueryFeature.PARENT_CHILDREN_RELATIONSHIP_PROMPT,
-                    CodeQueryFeature.INHERITANCE_AND_BASE_CLASS => CodeQueryFeature.INHERITANCE_AND_BASE_CLASS_PROMPT,
-                    CodeQueryFeature.INTERFACE => CodeQueryFeature.INTERFACE_PROMPT,
-                    CodeQueryFeature.SOLID_PRINCIPLES => CodeQueryFeature.SOLID_PRINCIPLES_PROMPT,
-                    CodeQueryFeature.CLEAN_ARCHITECTURE => CodeQueryFeature.CLEAN_ARCHITECTURE_PROMPT,
-                    CodeQueryFeature.DDD => CodeQueryFeature.DDD_PROMPT,
-                    CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY => CodeQueryFeature.ENCAPSULATION_AND_VISIBILITY_PROMPT,
-                    CodeQueryFeature.STATE_MUTABILITY => CodeQueryFeature.STATE_MUTABILITY_PROMPT,
-                    CodeQueryFeature.DIFF_SINCE_BASELINE => CodeQueryFeature.DIFF_SINCE_BASELINE_PROMPT,
-                    CodeQueryFeature.NAMING => CodeQueryFeature.NAMING_PROMPT,
-                    CodeQueryFeature.ATTRIBUTE => CodeQueryFeature.ATTRIBUTE_PROMPT,
-                    CodeQueryFeature.SOURCE_FILE_DECLARATION => CodeQueryFeature.SOURCE_FILE_DECLARATION_PROMPT,
-                    CodeQueryFeature.EVENT_PATTERN => CodeQueryFeature.EVENT_PATTERN_PROMPT,
-                    CodeQueryFeature.CONSTRUCTOR_INSTANTIATION => CodeQueryFeature.CONSTRUCTOR_INSTANTIATION_PROMPT,
-                    _ => throw new McpException($"Unknown code query feature: {feature}")
-                };
+                if(!CodeQueryFeature.TryGetFeaturePrompt(feature, out string prompt)) {
+                    throw new McpException($"Unknown code query feature: {feature}");
+                }
                 prompts.Add(feature, new CodeQueryFeaturePromptInfo(feature, prompt));
             }
             return prompts.Values.ToArray();
