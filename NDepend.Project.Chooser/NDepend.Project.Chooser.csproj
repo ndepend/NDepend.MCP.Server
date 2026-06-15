@@ -46,6 +46,9 @@
     <Compile Include="..\NDepend.Mcp.Tools\Helpers\AssemblyResolver.cs">
       <Link>AssemblyResolver.cs</Link>
     </Compile>
+    <Compile Include="..\NDepend.Mcp.Tools\Helpers\NDependRuntimeContext.cs">
+      <Link>NDependRuntimeContext.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,5 +1,5 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery {
-    internal partial class CodeQueryFeature {
+    public partial class CodeQueryFeature {
 
 
         internal const string PARENT_CHILDREN_RELATIONSHIP_PROMPT =

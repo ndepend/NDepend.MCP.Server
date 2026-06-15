@@ -1,6 +1,6 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
 
-internal partial class CodeQueryFeature {
+public partial class CodeQueryFeature {
     internal const string LINE_OF_CODE_PROMPT =
           """
           # Lines Of Code(LOC) Metrics

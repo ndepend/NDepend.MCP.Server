@@ -8,11 +8,11 @@ namespace NDepend.Mcp.HttpServer;
 public class Program  {
     // --- Application ---
 
-    // Need a static field to prevent GC collection
-    static readonly AssemblyResolver s_AssemblyResolver = new(@"..\..\..\..\ndepend\Lib");
+    // Need a static field to prevent GC collection. Creating it also hooks AssemblyResolve and picks
+    // ..\Lib (dev tree) or ..\..\..\..\ndepend\Lib (redistributable) via NDependRuntimeContext.
+    static readonly AssemblyResolver s_AssemblyResolver = NDependRuntimeContext.RegisterAssemblyResolver();
 
     public static async Task<int> Main(string[] args) {
-
         AppDomain.CurrentDomain.AssemblyResolve += s_AssemblyResolver.AssemblyResolveHandler;
 
         var bootstrap = new McpServerBootstrapHttp();

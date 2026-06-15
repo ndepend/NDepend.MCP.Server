@@ -1,5 +1,5 @@
 namespace NDepend.Mcp.Tools.CodeQuery;
-internal partial class CodeQueryFeature {
+public partial class CodeQueryFeature {
     internal const string INHERITANCE_AND_BASE_CLASS_PROMPT =
          """
          # Base class and inheritance hierarchy

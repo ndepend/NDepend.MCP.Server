@@ -1,5 +1,5 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
-internal partial class CodeQueryFeature {
+public partial class CodeQueryFeature {
     internal const string COMMENT_PROMPT =
           """
           # Lines of Comment Metrics

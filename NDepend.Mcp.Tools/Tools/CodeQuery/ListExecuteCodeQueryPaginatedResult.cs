@@ -35,6 +35,9 @@ namespace NDepend.Mcp.Tools.CodeQuery {
              """)]
         public string ExecutionStatus { get; set; } = NDepend.Mcp.Tools.CodeQuery.ExecutionStatus.STATUS_PASS;
 
+        [Description("Query execution duration in milliseconds (compilation time excluded).")]
+        public int ExecutionDurationInMilliseconds { get; set; }
+
 
         [Description("Column names")]
         public string[] ColumnNames { get; set; } = [];

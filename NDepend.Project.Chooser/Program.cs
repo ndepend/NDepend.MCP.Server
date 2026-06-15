@@ -10,15 +10,17 @@ namespace NDepend.Project.Chooser {
     internal sealed class Program {
 
 
-        // Need a static field to prevent GC collection
-        static readonly AssemblyResolver s_AssemblyResolver = new(@"..\..\..\..\ndepend\Lib");
+        // Need a static field to prevent GC collection. Creating it also hooks AssemblyResolve and picks
+        // ..\Lib (dev tree) or ..\..\..\..\ndepend\Lib (redistributable) via NDependRuntimeContext.
+        static readonly AssemblyResolver s_AssemblyResolver = NDependRuntimeContext.RegisterAssemblyResolver();
 
         [STAThread]
-        // Need this .NET Framework executable because the NDepend API 
+        // Need this .NET Framework executable because the NDepend API
         //   projectManager.ShowDialogChooseAnExistingProject
-        // only works on Windows, .NET Framework so far 
+        // only works on Windows, .NET Framework so far
         static void Main(string[] args) {
             AppDomain.CurrentDomain.AssemblyResolve += s_AssemblyResolver.AssemblyResolveHandler;
+
             MainSub();
         }
 

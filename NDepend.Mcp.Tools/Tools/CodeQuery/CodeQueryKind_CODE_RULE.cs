@@ -1,5 +1,5 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery; 
-internal partial class CodeQueryKind {
+public partial class CodeQueryKind {
     internal const string CODE_RULE_PROMPT =
         """
         What Is a Code Rule:

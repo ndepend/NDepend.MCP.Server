@@ -1,7 +1,7 @@
 ﻿
 namespace NDepend.Mcp.Tools.CodeQuery;
 
-internal partial class CodeQueryFeature {
+public partial class CodeQueryFeature {
     internal const string DIRECT_DEPENDENCY_PROMPT =
     """
     # Direct Dependency Analysis

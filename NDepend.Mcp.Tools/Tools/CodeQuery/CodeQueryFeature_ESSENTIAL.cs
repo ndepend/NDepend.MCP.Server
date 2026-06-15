@@ -1,10 +1,10 @@
 ﻿
 namespace NDepend.Mcp.Tools.CodeQuery; 
-internal partial class CodeQueryFeature {
+public partial class CodeQueryFeature {
 
     // Based on https://www.ndepend.com/docs/cqlinq-syntax
     
-    internal const string ESSENTIAL_PROMPT =
+    public const string ESSENTIAL_PROMPT =
      """
      # NDepend CQLinq Query Guide
 
@@ -95,6 +95,10 @@ internal partial class CodeQueryFeature {
      Sort to surface the most critical issues first:
      orderby m.CyclomaticComplexity descending   // most complex first
      orderby m.MaintainabilityIndex ascending    // least maintainable first
+     
+     ### Miscellaneous
+     
+     Null-propagation isn't allowed in CQLinq expression trees.
      
      ## Advanced Features
 

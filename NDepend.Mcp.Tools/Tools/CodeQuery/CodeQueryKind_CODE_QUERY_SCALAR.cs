@@ -1,6 +1,6 @@
 ﻿
 namespace NDepend.Mcp.Tools.CodeQuery; 
-internal partial class CodeQueryKind {
+public partial class CodeQueryKind {
     internal const string CODE_QUERY_SCALAR_PROMPT =
          """
          Generate a CQLinq query returning a SINGLE SCALAR VALUE — int, int?, float, or float?.

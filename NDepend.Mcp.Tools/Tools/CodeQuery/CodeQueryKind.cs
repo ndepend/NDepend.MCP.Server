@@ -1,8 +1,8 @@
 ﻿
 namespace NDepend.Mcp.Tools.CodeQuery; 
-internal static partial class CodeQueryKind {
+public static partial class CodeQueryKind {
 
-    internal static bool TryGetKindPrompt(string kind, out string kindPrompt) { 
+    public static bool TryGetKindPrompt(string kind, out string kindPrompt) { 
         kindPrompt = kind switch {
             CODE_RULE => CODE_RULE_PROMPT,
             QUALITY_GATE => QUALITY_GATE_PROMPT,
@@ -14,7 +14,7 @@ internal static partial class CodeQueryKind {
         return kindPrompt.Length > 0;
     }
 
-    internal const string QUERY_KIND_PARAM_DESC =
+    public const string QUERY_KIND_PARAM_DESC =
         $"""
          Specifies query kind. Tool returns generation instructions.
          

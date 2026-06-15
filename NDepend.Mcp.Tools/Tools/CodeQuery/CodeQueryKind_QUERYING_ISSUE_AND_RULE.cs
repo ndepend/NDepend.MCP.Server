@@ -1,6 +1,6 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
 
-internal partial class CodeQueryKind {
+public partial class CodeQueryKind {
     internal const string QUERYING_ISSUE_AND_RULE_PROMPT =
         """
         # Objective: Querying Issues, Rules, and Quality Gates

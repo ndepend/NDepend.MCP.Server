@@ -4,10 +4,10 @@ using NDepend.Path;
 using NDepend.Project;
 
 namespace NDepend.Mcp.Helpers {
-    internal static class ProjectHelpers {
+    public static class ProjectHelpers {
 
 
-        internal static bool TryGetNDependProjectFromPath(string filePath, out IAbsoluteFilePath? projectFilePath) {
+        public static bool TryGetNDependProjectFromPath(string filePath, out IAbsoluteFilePath? projectFilePath) {
             projectFilePath = null;
             if (!filePath.EndsWith(".ndproj", StringComparison.OrdinalIgnoreCase)) {
                 return false;
@@ -30,7 +30,7 @@ namespace NDepend.Mcp.Helpers {
         }
 
 
-        internal static async Task<IAbsoluteFilePath?> AskTheUserForNDependProjectAsync() {
+        public static async Task<IAbsoluteFilePath?> AskTheUserForNDependProjectAsync() {
             if (!OperatingSystem.IsWindows()) { return null; } // Show project dialog only works on Windows
 
             // Get the directory where .NET Core app is running
@@ -38,7 +38,7 @@ namespace NDepend.Mcp.Helpers {
             if(coreAppDirectory == null) { return null; }
 
             // Resolve the chooser exe path relative to it
-            // Not found in case of MCP SSE server, only MCP Stdio server running on local can show a project choose form
+            // Not found in case of MCP HTTP server, only MCP Stdio server running on local can show a project choose form
             string projectChooserExePath = System.IO.Path.Combine(coreAppDirectory, "NDepend.Project.Chooser.exe");
             if(!File.Exists(projectChooserExePath)) { return null; } 
 

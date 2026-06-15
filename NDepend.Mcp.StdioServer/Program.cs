@@ -3,12 +3,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
-using NDepend.Mcp.Services;
 using System.Diagnostics;
 using NDepend.Mcp.Helpers;
-using NDepend.Mcp.Server;
 using Serilog.Events;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NDepend.Mcp.StdioServer;
 
@@ -17,11 +14,12 @@ namespace NDepend.Mcp.StdioServer;
 
 public static class Program {
   
-    // Need a static field to prevent GC collection
-    static readonly AssemblyResolver s_AssemblyResolver = new (@"..\..\..\..\ndepend\Lib");
+    // Need a static field to prevent GC collection. Creating it also hooks AssemblyResolve and picks
+    // ..\Lib (dev tree) or ..\..\..\..\ndepend\Lib (redistributable) via NDependRuntimeContext.
 
+    static readonly AssemblyResolver s_AssemblyResolver = NDependRuntimeContext.RegisterAssemblyResolver();
+	
     public static async Task<int> Main(string[] args) {
-
         AppDomain.CurrentDomain.AssemblyResolve += s_AssemblyResolver.AssemblyResolveHandler;
 
         var bootstrap = new McpServerBootstrapStdio();

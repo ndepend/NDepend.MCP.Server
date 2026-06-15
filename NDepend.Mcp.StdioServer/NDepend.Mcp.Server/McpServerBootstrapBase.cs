@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.Reflection;
 using ModelContextProtocol.Protocol;
+using NDepend.Mcp.Helpers;
 using NDepend.Mcp.Services;
 using Serilog;
 using Serilog.Events;
@@ -97,12 +98,20 @@ namespace NDepend.Mcp.Server {
             // Default log directory if not specified, in .\artifacts\logs
             // or %AppContext.BaseDirectory%\logs  if output dir has been modified
             if (logDirPath == null) {
-                string baseDir = AppContext.BaseDirectory;
-                const string artifactsDirName = "artifacts";
-                const string logsDirName = "logs";
-                int index = baseDir.IndexOf(artifactsDirName, StringComparison.OrdinalIgnoreCase);
-                if (index > 0) { baseDir = baseDir.Substring(0, index + artifactsDirName.Length); }
-                logDirPath = Path.Combine(baseDir, logsDirName);
+                if (NDependRuntimeContext.IsInNDependDevTree) {
+                    // Dev tree: keep logs out of the build output -> C:\ProgramData\NDepend\mcp-svr-logs
+                    // (CommonApplicationData maps to /usr/share on Linux/macOS).
+                    logDirPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                        "NDepend", "mcp-svr-logs");
+                } else {
+                    string baseDir = AppContext.BaseDirectory;
+                    const string artifactsDirName = "artifacts";
+                    const string logsDirName = "logs";
+                    int index = baseDir.IndexOf(artifactsDirName, StringComparison.OrdinalIgnoreCase);
+                    if (index > 0) { baseDir = baseDir.Substring(0, index + artifactsDirName.Length); }
+                    logDirPath = Path.Combine(baseDir, logsDirName);
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(logDirPath)) {

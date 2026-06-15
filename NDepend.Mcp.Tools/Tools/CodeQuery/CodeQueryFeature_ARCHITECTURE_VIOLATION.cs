@@ -1,6 +1,6 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
 
-internal partial class CodeQueryFeature {
+public partial class CodeQueryFeature {
     internal const string ARCHITECTURE_VIOLATION_PROMPT =
     """
     # Architecture Violation Detection

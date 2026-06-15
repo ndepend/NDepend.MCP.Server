@@ -1,6 +1,6 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
 
-internal partial class CodeQueryKind {
+public partial class CodeQueryKind {
     internal const string TREND_METRIC_PROMPT =
         """
         A trend metric is a CQLinq query returning a single numeric value tracked over time to plot charts.

@@ -114,6 +114,7 @@ public static partial class CodeQueryTools {
             //
             const int TIME_OUT_SECONDS = 10;
             var project = session.Project;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             IQueryExecutionResult executionResult =
                 queryCompiledSuccess.Execute(
                     new QueryExecutionContext(session.CompareContext.NewerCodeBase) {
@@ -123,6 +124,7 @@ public static partial class CodeQueryTools {
                         DebtSettings = project.DebtSettings.Values,
                         CQLinqQueryExecTimeOut = TIME_OUT_SECONDS.ToSeconds()
                     });
+            stopwatch.Stop();
 
             switch (executionResult.Status) {
                 case QueryExecutionStatus.TimeOut:
@@ -197,7 +199,9 @@ public static partial class CodeQueryTools {
                     }
                     : isRuleViolated
                         ? ExecutionStatus.STATUS_WARN
-                        : ExecutionStatus.STATUS_PASS
+                        : ExecutionStatus.STATUS_PASS,
+
+                ExecutionDurationInMilliseconds = (int)stopwatch.ElapsedMilliseconds
             };
             return finalResult;
         }, cancellationToken);

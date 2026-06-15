@@ -1,5 +1,5 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
-internal partial class CodeQueryFeature {
+public partial class CodeQueryFeature {
     internal const string COMPLEXITY_PROMPT =
           """
           # Cyclomatic Complexity (CC) Metrics

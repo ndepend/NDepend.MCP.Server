@@ -1,6 +1,6 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
 
-internal partial class CodeQueryKind {
+public partial class CodeQueryKind {
     internal const string QUALITY_GATE_PROMPT =
         """
         A quality gate is a CQLinq query with `warnif`/`failif` directives that enforces pass/warn/fail thresholds.

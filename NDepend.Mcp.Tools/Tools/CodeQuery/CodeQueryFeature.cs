@@ -1,7 +1,7 @@
 ﻿namespace NDepend.Mcp.Tools.CodeQuery;
 
-internal static partial class CodeQueryFeature {
-    internal static bool TryGetFeaturePrompt(string feature, out string featurePrompt) {
+public static partial class CodeQueryFeature {
+    public static bool TryGetFeaturePrompt(string feature, out string featurePrompt) {
         featurePrompt = feature switch {
             ESSENTIAL => ESSENTIAL_PROMPT,
             LINE_OF_CODE => LINE_OF_CODE_PROMPT,
@@ -31,7 +31,7 @@ internal static partial class CodeQueryFeature {
         return featurePrompt.Length > 0;
     }
 
-    internal const string QUERY_FEATURE_PARAM_DESC =
+    public const string QUERY_FEATURE_PARAM_DESC =
         $"""
          Select ALL applicable features. Include 5+ if needed - better to over-specify than miss aspects.
          
@@ -65,7 +65,7 @@ internal static partial class CodeQueryFeature {
 
     // Define NDepend query features.
     // LLM identifies relevant features for the user's request and retrieves their prompts.
-    internal const string ESSENTIAL = "code-query-essential";
+    public const string ESSENTIAL = "code-query-essential";
 
     // ESSENTIAL_EXPL not needed since ESSENTIAL prompt is always selected to educate the LLM about querying structure
     //internal const string ESSENTIAL_EXPL =
