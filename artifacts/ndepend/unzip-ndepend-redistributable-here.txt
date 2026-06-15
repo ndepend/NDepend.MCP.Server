@@ -1,0 +1,3 @@
+- get the NDepend zipped redistributable from: https://www.ndepend.com/download
+- Unzip it here
+- REQUIRED: Run VisualNDepend.exe once to start your evaluation or register a license.
