@@ -27,7 +27,7 @@ public static class Program {
         if(!bootstrap.TryParseArgument(args, 
                out string? logDirPath,
                out LogEventLevel minimumLogLevel,
-               out string? ndpProjectPath)) {
+               out string? ndprojOrSlnx)) {
             return 1;
         }
         
@@ -52,8 +52,8 @@ public static class Program {
                 $"Starting {bootstrap.ApplicationName} v{bootstrap.ApplicationVersion} " +
                 $"PID:{Process.GetCurrentProcess().Id}");
 
-            if (!string.IsNullOrEmpty(ndpProjectPath)) {
-                bootstrap.LoadNDependProject(ndpProjectPath, host, logger);
+            if (!string.IsNullOrEmpty(ndprojOrSlnx)) {
+                await bootstrap.LoadNDependProjectAsync(ndprojOrSlnx, host, logger);
             }
 
             await host.RunAsync();

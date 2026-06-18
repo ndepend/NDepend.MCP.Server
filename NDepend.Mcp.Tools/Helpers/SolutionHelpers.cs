@@ -23,7 +23,7 @@ namespace NDepend.Mcp.Helpers {
         //
         internal static bool TryGetExistingSolutionFilePath(
                 string solutionFilePathStr, 
-                ILogger<InitializeToolsLog> logger, 
+                ILogger logger, 
                 out IAbsoluteFilePath solutionFilePath,
                 out List<IAbsoluteFilePath> mruSlnFilePaths) {
 
@@ -80,7 +80,7 @@ namespace NDepend.Mcp.Helpers {
         private static bool TryGetMRUSlnFilePathFromCsproj(
                string csprojPathStr,
                List<IAbsoluteFilePath> mruSlnFilePaths,
-               ILogger<InitializeToolsLog> logger,
+               ILogger logger,
                out IAbsoluteFilePath? solutionFilePathTyped) {
 
             // Sometime Copilot provides a .csproj file path like "dir\FileName.csproj" instead of a solution file path
@@ -123,7 +123,7 @@ namespace NDepend.Mcp.Helpers {
         private static bool TryGetMRUSlnFilePathFromMalformedSlnFilePath(
                 string malformed, 
                 List<IAbsoluteFilePath> mruSlnFilePaths,
-                ILogger<InitializeToolsLog> logger,
+                ILogger logger,
                 out IAbsoluteFilePath? solutionFilePathTyped) {
             // Extract only the solution file name without path and without extension
             string fileName = GetFileName(malformed);
@@ -149,7 +149,7 @@ namespace NDepend.Mcp.Helpers {
         private static bool TryGetMRUSlnFilePathFromSlnName(
                 string solutionFileNameWithNoExtension, 
                 List<IAbsoluteFilePath> mruSlnFilePaths,
-                ILogger<InitializeToolsLog> logger,
+                ILogger logger,
                 out IAbsoluteFilePath? solutionFilePathTyped) {
             solutionFilePathTyped = mruSlnFilePaths
                 .FirstOrDefault(p => 
@@ -163,7 +163,7 @@ namespace NDepend.Mcp.Helpers {
         private static bool TryGetMRUSlnFilePathWhichContainSlnName(
                 string solutionFileNameWithNoExtension, 
                 List<IAbsoluteFilePath> mruSlnFilePaths,
-                ILogger<InitializeToolsLog> logger,
+                ILogger logger,
                 out IAbsoluteFilePath? solutionFilePathTyped) {
             solutionFilePathTyped = mruSlnFilePaths
                 .FirstOrDefault(p =>

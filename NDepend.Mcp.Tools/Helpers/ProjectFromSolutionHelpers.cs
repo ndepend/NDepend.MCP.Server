@@ -5,10 +5,10 @@ using NDepend.Path;
 using NDepend.Project;
 
 namespace NDepend.Mcp.Helpers; 
-internal static class ProjectFromSolutionHelpers {
+public static class ProjectFromSolutionHelpers {
 
-    internal static bool TryGetNDependProjectFromSolution(
-            ILogger<InitializeToolsLog> logger,
+    public static bool TryGetNDependProjectFromSolution(
+            ILogger logger,
             IAbsoluteFilePath solutionFilePathTyped,
             out IAbsoluteFilePath? projectFilePath) {
         bool isSlnxExt = solutionFilePathTyped.HasExtension(".slnx");
@@ -28,7 +28,7 @@ internal static class ProjectFromSolutionHelpers {
         return false;
     }
 
-    internal static IProject CreateNDependProjectSideBySideWithTheSolution(
+    public static IProject CreateNDependProjectSideBySideWithTheSolution(
             ILogger logger, 
             IAbsoluteFilePath solutionFilePath) {
         var projectFilePath = GetSideBySideProjectFilePath(solutionFilePath);

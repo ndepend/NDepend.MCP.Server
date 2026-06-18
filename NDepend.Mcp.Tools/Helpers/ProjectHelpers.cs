@@ -30,7 +30,31 @@ namespace NDepend.Mcp.Helpers {
         }
 
 
+        // Show a dialog (run in the dedicated .NET Framework NDepend.Project.Chooser.exe process) to let the
+        // user pick an NDepend project among the Most Recently Used ones. Returns its absolute path or null.
         public static async Task<IAbsoluteFilePath?> AskTheUserForNDependProjectAsync() {
+            string? output = await RunProjectChooserAsync(null);
+            if (output == null || !output.TryGetAbsoluteFilePath(out IAbsoluteFilePath? projectFilePath)) {
+                return null;
+            }
+            return projectFilePath;
+        }
+
+
+        // Show a dialog (run in the dedicated .NET Framework NDepend.Project.Chooser.exe process) to let the
+        // user pick one Visual Studio solution among the Most Recently Used ones.  Returns its absolute path or null.
+        public static async Task<IAbsoluteFilePath?> AskTheUserForSolutionAsync() {
+            string? output = await RunProjectChooserAsync("sln");
+            if (string.IsNullOrWhiteSpace(output) || !output.TryGetAbsoluteFilePath(out IAbsoluteFilePath? solutionFilePath)) { return null; }
+            return solutionFilePath;
+        }
+
+
+        // Factorized launch of NDepend.Project.Chooser.exe (a .NET Framework executable, because the underlying
+        // NDepend API show-dialog methods only work on Windows + .NET Framework so far). The optional argument
+        // selects which dialog the chooser shows ("sln" for Visual Studio solutions/projects, null for an
+        // NDepend project). Returns the chooser standard output, or null if it cannot run or exits non-zero.
+        private static async Task<string?> RunProjectChooserAsync(string? argument) {
             if (!OperatingSystem.IsWindows()) { return null; } // Show project dialog only works on Windows
 
             // Get the directory where .NET Core app is running
@@ -40,15 +64,16 @@ namespace NDepend.Mcp.Helpers {
             // Resolve the chooser exe path relative to it
             // Not found in case of MCP HTTP server, only MCP Stdio server running on local can show a project choose form
             string projectChooserExePath = System.IO.Path.Combine(coreAppDirectory, "NDepend.Project.Chooser.exe");
-            if(!File.Exists(projectChooserExePath)) { return null; } 
+            if(!File.Exists(projectChooserExePath)) { return null; }
 
             var processInfo = new ProcessStartInfo {
                 FileName = projectChooserExePath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                CreateNoWindow = true
+                CreateNoWindow = false
             };
+            if (argument != null) { processInfo.ArgumentList.Add(argument); }
 
             using var process = Process.Start(processInfo);
 
@@ -56,11 +81,8 @@ namespace NDepend.Mcp.Helpers {
             string output = await process!.StandardOutput.ReadToEndAsync();
             await process.WaitForExitAsync();
 
-            if (process.ExitCode != 0 ||
-                !output.TryGetAbsoluteFilePath(out IAbsoluteFilePath? projectFilePath)) {
-                return null;
-            }
-            return projectFilePath;
+            if (process.ExitCode != 0) { return null; }
+            return output;
         }
 
 

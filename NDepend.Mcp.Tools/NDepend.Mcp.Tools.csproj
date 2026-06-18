@@ -2,6 +2,11 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.0" />
         <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
+        <!-- Override the Microsoft.Extensions.AI.Abstractions 10.3.0 that ModelContextProtocol.Core 1.1.0
+             pulls in transitively, so the MCP server ships the SAME 10.4.x as NDepend.AI (which references
+             Microsoft.Extensions.AI 10.4.1). Otherwise the MCP pre-copy shadows NDepend.AI's 10.4.0.0 with
+             10.3.0.0 and the direct-LLM path fails to bind it. -->
+        <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="10.4.1" />
     </ItemGroup>
 
     <ItemGroup>

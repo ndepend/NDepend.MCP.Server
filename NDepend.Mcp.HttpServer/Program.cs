@@ -21,7 +21,7 @@ public class Program  {
                out string? serverUrl,
                out string? logDirPath,
                out LogEventLevel minimumLogLevel,
-               out string? ndpProjectPath)) {
+               out string? ndprojOrSlnx)) {
             return 1;
         }
 
@@ -59,8 +59,8 @@ public class Program  {
             WebApplication app = builder.Build();
 
             var logger = bootstrap.BuildBootstrapLogger(app);
-            if (!string.IsNullOrEmpty(ndpProjectPath)) {
-                bootstrap.LoadNDependProject(ndpProjectPath, app, logger);
+            if (!string.IsNullOrEmpty(ndprojOrSlnx)) {
+                await bootstrap.LoadNDependProjectAsync(ndprojOrSlnx, app, logger);
             }
 
             // --- ASP.NET Core Middleware ---

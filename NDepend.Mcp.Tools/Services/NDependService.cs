@@ -1,5 +1,8 @@
-﻿using NDepend.Analysis;
+﻿using System.Diagnostics;
+using ModelContextProtocol;
+using NDepend.Analysis;
 using NDepend.Mcp.Helpers;
+using NDepend.Mcp.Tools.Common;
 using NDepend.Path;
 using NDepend.Project;
 
@@ -13,13 +16,68 @@ public class NDependService : INDependService {
         return m_Session != null;
     }
 
-    public bool InitializeFromProject(string projectFilePathStr, ILogger logger, Action<int>? reportProgressProc, out Session session) {
+    public async Task<Session> InitializeFromProjectOrSolutionAsync(string slnOrNdprojFilePath, ILogger logger, Action<int>? reportProgressProc) {
         StopWatchingForNewAnalysisResult();
-        logger.LogInformation($"Initializing from the NDepend project file `{projectFilePathStr}`.");
 
-        if(!projectFilePathStr.TryGetAbsoluteFilePath(out IAbsoluteFilePath projectFilePath)) {
-            logger.LogErrorAndThrow($"The NDepend project file path `{projectFilePathStr}` is not a valid absolute file path.");
+        // Resolve which .ndproj to load from the provided .ndproj OR .sln/.slnx path
+        // (logic moved here from InitializeTools.InitFromSolutionOrNdprojFilePath).
+        IAbsoluteFilePath projectFilePath = await ResolveNDependProjectFilePathAsync(slnOrNdprojFilePath, logger);
+
+        return InitializeFromNDependProjectFile(projectFilePath, logger, reportProgressProc);
+    }
+
+    // Resolve the .ndproj to load: an .ndproj passed directly, the .ndproj attached to / side-by-side
+    // with a provided .sln/.slnx (created when missing), or one the user picks in the chooser dialog.
+    // Throws an McpException listing the MRU solutions when nothing can be resolved.
+    private static async Task<IAbsoluteFilePath> ResolveNDependProjectFilePathAsync(string slnOrNdprojFilePath, ILogger logger) {
+        // Possibly the caller provided an .ndproj file directly, by-passing the demand for a solution path.
+        if (ProjectHelpers.TryGetNDependProjectFromPath(slnOrNdprojFilePath, out IAbsoluteFilePath? projectFilePath)) {
+            return projectFilePath!;
         }
+
+        // Check the solution file path argument.
+        if (!SolutionHelpers.TryGetExistingSolutionFilePath(
+                slnOrNdprojFilePath,
+                logger,
+                out IAbsoluteFilePath solutionFilePath,
+                out List<IAbsoluteFilePath> mruSlnFilePaths)) {
+
+            // Solution/project not resolved: on Windows show a dialog to let the user pick an .ndproj.
+            projectFilePath = await ProjectHelpers.AskTheUserForNDependProjectAsync();
+            if (projectFilePath != null) { return projectFilePath; }
+            throw BuildMcpExceptionToChooseAmongMRUSolutions(logger, slnOrNdprojFilePath, mruSlnFilePaths);
+        }
+
+        // Get the .ndproj attached to the solution or side-by-side with it.
+        if (ProjectFromSolutionHelpers.TryGetNDependProjectFromSolution(logger, solutionFilePath, out projectFilePath)) {
+            return projectFilePath!;
+        }
+
+        // No project found from the solution: create it side-by-side (analysis runs on first use).
+        return ProjectFromSolutionHelpers.CreateNDependProjectSideBySideWithTheSolution(logger, solutionFilePath).Properties.FilePath;
+    }
+
+    private static McpException BuildMcpExceptionToChooseAmongMRUSolutions(ILogger logger, string solutionFilePath, List<IAbsoluteFilePath> mruSlnFilePaths) {
+        logger.LogError(
+            $"""
+             The provided solution file path `{solutionFilePath}` is not valid.
+             Thrown an McpException with the list of most recently used solution file paths to let the user or the LLM pick one and call again with the selected solution file path.
+             """);
+        var sb = new StringBuilder(
+            $"""
+             ERROR: The solution file path `{solutionFilePath}` is not valid or doesn't exist.
+             ACTION REQUIRED: Select a path from the Most Recently Used solutions below and call `{Constants.INITIALIZE_FROM_SOLUTION_TOOL_NAME}` using the selected path.
+             """);
+        foreach (string path in mruSlnFilePaths.Select(p => p.ToString()!)) {
+            sb.Append($@"
+- `{path}`");
+        }
+        return new McpException(sb.ToString());
+    }
+
+    // Load the given .ndproj, get (or run) its analysis result + baseline, and build the Session.
+    private Session InitializeFromNDependProjectFile(IAbsoluteFilePath projectFilePath, ILogger logger, Action<int>? reportProgressProc) {
+        logger.LogInformation($"Initializing from the NDepend project file `{projectFilePath}`.");
 
         if (!projectFilePath.Exists) {
             logger.LogErrorAndThrow($"The NDepend project file `{projectFilePath}` does not exist.");
@@ -29,10 +87,9 @@ public class NDependService : INDependService {
 
         IAnalysisResult result;
         IAnalysisResult baselineResult; // If no baseline result, define it as the current result (which will mean no diff)
-
         if (!project.TryGetMostRecentAnalysisResultRef(out IAnalysisResultRef resultRef)) {
             // If no analysis result available for project, run analysis on this project to get one
-            logger.LogErrorAndThrow($"The NDepend project file `{projectFilePath}` has no analysis result available. Run the analysis.");
+            logger.LogInformation($"The NDepend project file `{projectFilePath}` has no analysis result available. Run the analysis.");
             result =  project.RunAnalysisWithLog(logger, this.StopWatchingForNewAnalysisResult, reportProgressProc);
             baselineResult = result;
 
@@ -55,9 +112,9 @@ public class NDependService : INDependService {
             result = loadTask.Result;
         }
 
-        session = CreateNewSessionWhichStartComputeIssuesAsync(logger, result, baselineResult);
+        Session session = CreateNewSessionWhichStartComputeIssuesAsync(logger, result, baselineResult);
         logger.LogInformation("Issues computed and initialization ok.");
-        return true;
+        return session;
     }
 
     public bool InitializeFromAnalysisResult(IAnalysisResult analysisResult, ILogger logger, Action<int>? reportProgressProc, out Session session) {

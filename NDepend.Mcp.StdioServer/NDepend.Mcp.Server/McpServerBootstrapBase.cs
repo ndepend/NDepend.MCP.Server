@@ -11,6 +11,7 @@ using Serilog.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NDepend.Mcp.Tools.Common;
 
 namespace NDepend.Mcp.Server {
     internal abstract class McpServerBootstrapBase {
@@ -32,7 +33,7 @@ namespace NDepend.Mcp.Server {
                 out LogEventLevel minimumLogLevel,
                 out string? ndpProjectPath,
                 out ParseResult? parseResult) {
-            var logDirOption = new Option<string?>("--log-directory") {
+            var logDirOption = new Option<string?>(Constants.MCP_ARG_LOG_DIRECTORY) {
                 Description = "Optional path to a log directory. If not specified, logs only go to console."
             };
 
@@ -41,8 +42,8 @@ namespace NDepend.Mcp.Server {
                 DefaultValueFactory = x => LogEventLevel.Information
             };
 
-            var loadNdpProjectOption = new Option<string?>("--load-ndepend-project") {
-                Description = "Path to an NDepend project file (.ndproj) to load immediately on startup."
+            var loadNdpProjectOption = new Option<string?>(Constants.MCP_ARG_LOAD_NDEPEND_PROJECT_OR_SOLUTION) {
+                Description = "Path to an NDepend project file (.ndproj) or a .NET solution file (.slnx|.sln) to load immediately on startup."
             };
 
             var rootCommand = new RootCommand($"NDepend MCP {Kind} Server"){
@@ -98,20 +99,12 @@ namespace NDepend.Mcp.Server {
             // Default log directory if not specified, in .\artifacts\logs
             // or %AppContext.BaseDirectory%\logs  if output dir has been modified
             if (logDirPath == null) {
-                if (NDependRuntimeContext.IsInNDependDevTree) {
-                    // Dev tree: keep logs out of the build output -> C:\ProgramData\NDepend\mcp-svr-logs
-                    // (CommonApplicationData maps to /usr/share on Linux/macOS).
-                    logDirPath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                        "NDepend", "mcp-svr-logs");
-                } else {
-                    string baseDir = AppContext.BaseDirectory;
-                    const string artifactsDirName = "artifacts";
-                    const string logsDirName = "logs";
-                    int index = baseDir.IndexOf(artifactsDirName, StringComparison.OrdinalIgnoreCase);
-                    if (index > 0) { baseDir = baseDir.Substring(0, index + artifactsDirName.Length); }
-                    logDirPath = Path.Combine(baseDir, logsDirName);
-                }
+                string baseDir = AppContext.BaseDirectory;
+                const string artifactsDirName = "artifacts";
+                const string logsDirName = "logs";
+                int index = baseDir.IndexOf(artifactsDirName, StringComparison.OrdinalIgnoreCase);
+                if (index > 0) { baseDir = baseDir.Substring(0, index + artifactsDirName.Length); }
+                logDirPath = Path.Combine(baseDir, logsDirName);
             }
 
             if (!string.IsNullOrWhiteSpace(logDirPath)) {
@@ -158,15 +151,17 @@ namespace NDepend.Mcp.Server {
             return host.Services.GetRequiredService<ILogger<BootstrapLogCategory>>();
         }
 
-        internal void LoadNDependProject(string ndpProjectPath, IHost host, Microsoft.Extensions.Logging.ILogger logger) {
+        // Loads the .ndproj or .sln/.slnx passed via --load-ndproj-or-slnx, reusing the same
+        // resolution + load logic the initialize-from-solution MCP tool uses.
+        internal async Task LoadNDependProjectAsync(string ndprojOrSlnx, IHost host, Microsoft.Extensions.Logging.ILogger logger) {
             try {
                 var ndependService = host.Services.GetRequiredService<INDependService>();
 
-                logger.LogInformation($"Loading NDepend project: `{ndpProjectPath}`", ndpProjectPath);
-                ndependService.InitializeFromProject(ndpProjectPath, logger, _ => { }, out _);
+                logger.LogInformation($"Loading NDepend project: `{ndprojOrSlnx}`", ndprojOrSlnx);
+                await ndependService.InitializeFromProjectOrSolutionAsync(ndprojOrSlnx, logger, _ => { });
 
             } catch (Exception ex) {
-                logger.LogError(ex, $"Error loading NDepend project: ${ndpProjectPath}");
+                logger.LogError(ex, $"Error loading NDepend project: ${ndprojOrSlnx}");
             }
         }
     }

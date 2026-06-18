@@ -13,7 +13,7 @@ namespace NDepend.Mcp.HttpServer {
                 out string? serverUrl,
                 out string? logDirPath,
                 out LogEventLevel minimumLogLevel,
-                out string? ndpProjectPath) {
+                out string? ndprojOrSlnx) {
 
             var portOption = new Option<int>("--port") {
                 Description = "The port number for the NDepend MCP server to listen on.",
@@ -27,7 +27,7 @@ namespace NDepend.Mcp.HttpServer {
                     [portOption],
                     out logDirPath,
                     out minimumLogLevel,
-                    out ndpProjectPath,
+                    out ndprojOrSlnx,
                     out ParseResult? parseResult)) {
                 serverUrl = null;
                 return false;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 
 namespace NDepend.Mcp.Helpers {
@@ -11,7 +11,7 @@ namespace NDepend.Mcp.Helpers {
     public static class NDependRuntimeContext {
 
         // bin\<Config>\net10.0\NDepend.AI.dll present  =>  dev tree; otherwise shipped redistributable.
-        public static bool IsInNDependDevTree { get; } =
+        private static bool IsInNDependDevTree { get; } =
             System.IO.File.Exists(System.IO.Path.Combine(AppContext.BaseDirectory, "NDepend.AI.dll"));
 
         // Relative path (from the executing assembly folder) to the NDepend 'Lib' folder
@@ -19,7 +19,7 @@ namespace NDepend.Mcp.Helpers {
         //   - dev tree:        ..\Lib                       (one level up: bin\<Config>\Lib)
         //   - redistributable: ..\..\..\..\ndepend\Lib
         // Built with Path.Combine so it's correct on Windows AND Linux/macOS.
-        public static string RelativePathToLib { get; } =
+        private static string RelativePathToLib { get; } =
             IsInNDependDevTree
                 ? System.IO.Path.Combine("..", "Lib")
                 : System.IO.Path.Combine("..", "..", "..", "..", "ndepend", "Lib");
