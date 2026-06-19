@@ -4,6 +4,7 @@ public static partial class CodeQueryKind {
 
     public static bool TryGetKindPrompt(string kind, out string kindPrompt) { 
         kindPrompt = kind switch {
+            CODE_QUERY_LIST => CODE_QUERY_LIST_PROMPT,
             CODE_RULE => CODE_RULE_PROMPT,
             QUALITY_GATE => QUALITY_GATE_PROMPT,
             QUERYING_ISSUE_AND_RULE => QUERYING_ISSUE_AND_RULE_PROMPT,
@@ -31,7 +32,15 @@ public static partial class CodeQueryKind {
     internal const string CODE_QUERY_LIST_EXPL =
         "C# LINQ query returning a collection of code elements with properties, dependencies, and metrics. " +
         "Each row contains one element plus computed fields.";
-    // There is no special prompt for code query list since it is the default one and covered by the feature 'essential'.
+    
+    // code-query-list is the default kind and is already covered by the feature 'essential', so this prompt
+    // is intentionally minimal.
+    internal const string CODE_QUERY_LIST_PROMPT =
+        """
+        Generate a CQLinq query returning a COLLECTION of code elements (types, methods, fields, namespaces,
+        assemblies...) with their relevant properties, dependencies and metrics. Each row is one element plus
+        the computed fields needed to answer the request.
+        """;
 
     internal const string CODE_RULE = "code-rule";
     internal const string CODE_RULE_EXPL =
