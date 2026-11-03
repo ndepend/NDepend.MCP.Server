@@ -44,9 +44,12 @@ namespace NDepend.Mcp.Helpers {
 
                 // Find the highest .NET version available in the NDepend redistributable
                 // It contains both assemblies, start with .NET 20.0 and go down till .NET 10.0
+                // 30Sep2026: DirectorySeparatorChar instead of a hard-coded '\' — on Linux/macOS the path is
+                // "../Lib/" and the backslash Replace never matched (System.CodeDom was never resolved there).
+                char sep = System.IO.Path.DirectorySeparatorChar;
                 for (int i = 20; i >= 10; i--) {
-                    string replaceWith = $@"\net{i}.0";
-                    string relativePathToLibTmp = m_RelativePathToLib.ToLower().Replace(@"\lib", replaceWith); // ToLower() coz , StringComparison.OrdinalIgnoreCase not available in .NET Fx
+                    string replaceWith = $"{sep}net{i}.0";
+                    string relativePathToLibTmp = m_RelativePathToLib.ToLower().Replace($"{sep}lib", replaceWith); // ToLower() coz , StringComparison.OrdinalIgnoreCase not available in .NET Fx
                     string asmFilePathTmp = GetAsmFilePath(relativePathToLibTmp);
                     if (System.IO.File.Exists(asmFilePathTmp)) {
                         relativePathToLib = relativePathToLibTmp;

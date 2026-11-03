@@ -64,6 +64,11 @@ namespace NDepend.Mcp.Helpers {
         private static void WaitForFileAvailable(IAbsoluteFilePath filePath, ILogger logger, int retryDelayMs = 200, int maxWaitMs = 10000) {
             var sw = Stopwatch.StartNew();
 
+            // 29Sep2026 (Linux/macOS): the FileShare.None probe below is a no-op there (Unix does not
+            // enforce sharing modes), so a file still being written opens at once — wait until its
+            // size stops changing instead. Windows keeps the exclusive-open probe only.
+            long lastLength = -1;
+			bool isWindows = OperatingSystem.IsWindows();
             while (true) {
                 try {
                     using var stream = new FileStream(
@@ -71,6 +76,17 @@ namespace NDepend.Mcp.Helpers {
                         FileMode.Open,
                         FileAccess.Read,
                         FileShare.None);
+                    if (!isWindows) {
+                        long length = stream.Length;
+                        if (length != lastLength || length == 0) {
+                            lastLength = length;
+                            if (sw.ElapsedMilliseconds > maxWaitMs) {
+                                logger.LogErrorAndThrow($"Timeout waiting for file `{filePath.ToString()}` to become available.");
+                            }
+                            Task.Delay(retryDelayMs).Wait();
+                            continue;   // stable for one full retry delay = written
+                        }
+                    }
                     // File is available
                     sw.Stop();
                     return;

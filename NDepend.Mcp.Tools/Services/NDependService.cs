@@ -54,7 +54,8 @@ public class NDependService : INDependService {
         }
 
         // No project found from the solution: create it side-by-side (analysis runs on first use).
-        return ProjectFromSolutionHelpers.CreateNDependProjectSideBySideWithTheSolution(logger, solutionFilePath).Properties.FilePath;
+        // 13Oct2026: the coverage data found, if any, is logged by the helper
+        return ProjectFromSolutionHelpers.CreateNDependProjectSideBySideWithTheSolution(logger, solutionFilePath, out _).Properties.FilePath;
     }
 
     private static McpException BuildMcpExceptionToChooseAmongMRUSolutions(ILogger logger, string solutionFilePath, List<IAbsoluteFilePath> mruSlnFilePaths) {

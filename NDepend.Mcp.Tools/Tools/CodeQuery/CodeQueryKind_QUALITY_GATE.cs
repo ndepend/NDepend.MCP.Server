@@ -26,8 +26,11 @@ public partial class CodeQueryKind {
         // <QualityGate Name="Percentage Coverage" Unit="%" />
         failif value < 70%
         warnif value < 80%
-        codeBase.PercentageCoverage
-        //<Desc> Percentage of code executed by tests. High coverage reduces undetected bug risk.</Desc>
+        // Application code only: the test assemblies (TestCode) are not counted
+        let covered    = (double)Application.Assemblies.Sum(a => a.NbLinesOfCodeCovered ?? 0)
+        let notCovered = (double)Application.Assemblies.Sum(a => a.NbLinesOfCodeNotCovered ?? 0)
+        select (covered + notCovered) == 0d ? (double?)null : 100d * covered / (covered + notCovered)
+        //<Desc> Percentage of application code executed by tests. High coverage reduces undetected bug risk.</Desc>
         ```
 
         ```csharp

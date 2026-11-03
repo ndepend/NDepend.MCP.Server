@@ -42,6 +42,14 @@ namespace NDepend.Mcp.Tools.Common {
 
         internal const string FILTER_PARENT_PROJECT_NAME_DESC = "Filter by parent project name.";
 
+        internal const string INCLUDE_TEST_CODE_DESC =
+            """
+            `false` by default: only the application code elements are searched (assemblies neither third-party nor test assemblies).
+            Set to `true` when the user asks about tests, test methods, test classes or test projects: the test assemblies
+            (assemblies referencing a test framework) are then searched too.
+            """;
+
+
         internal const string FILTER_ELEM_KIND_ENUM =
              $"""
               Possible values are `{CodeElementKindHelpers.KIND_ALL}`, '${CodeElementKindHelpers.KIND_ASSEMBLY}`, `{CodeElementKindHelpers.KIND_NAMESPACE}`, `{CodeElementKindHelpers.KIND_TYPE}` and `{CodeElementKindHelpers.KIND_METHOD}`.
@@ -53,13 +61,15 @@ namespace NDepend.Mcp.Tools.Common {
                 this Session session,
                 ILogger<T> logger,
                 string currentOrBaseline,
+                bool includeTestCode,
                 out CurrentOrBaseline currentOrBaselineVal) {
             currentOrBaselineVal = CurrentOrBaselineHelpers.GetCurrentOrBaselineVal(logger, currentOrBaseline);
-            ICodeBaseView codeBase = session.AnalysisResult.CodeBase.Application;
+            ICodeBase codeBase = session.AnalysisResult.CodeBase;
             if (currentOrBaselineVal == CurrentOrBaseline.Baseline) {
-                codeBase = session.CompareContext.OlderCodeBase.Application;
+                codeBase = session.CompareContext.OlderCodeBase;
             }
-            return codeBase;
+
+            return includeTestCode ? codeBase.ApplicationAndTestCode : codeBase.Application;
         }
 
 

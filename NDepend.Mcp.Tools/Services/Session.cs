@@ -28,29 +28,34 @@ namespace NDepend.Mcp.Services {
             m_InitIssuesTask = m_InitCompareContextTask.ContinueWith(ComputeIssuesAsync).Unwrap();
         }
 
-        internal IProject Project { get; }
-        internal IAnalysisResult AnalysisResult { get; }
-        internal IAnalysisResult BaselineResult { get; }
+        public IProject Project { get; }
+        public IAnalysisResult AnalysisResult { get; }
+        public IAnalysisResult BaselineResult { get; }
 
         private readonly ILogger m_Logger;
         private readonly IDisposable m_NdarWatcher;
 
         public void Dispose() {
             m_NdarWatcher.Dispose();
-            m_InitCompareContextTask.Dispose();
-            m_InitIssuesTask.Dispose();
+            // Do NOT dispose the two init tasks: they can still be RUNNING when a new analysis result
+            // triggers the NdarWatcher re-initialization that disposes the previous session — and
+            // disposing a non-completed Task throws InvalidOperationException on the watcher thread,
+            // killing the process. Tasks hold no resource that needs disposing here anyway.
         }
 
 
-        internal void StopWatchingForNewAnalysisResult() {
+        // public (not internal): the NDepend.AI fix-issues orchestrator manages its analysis snapshots
+        // explicitly and must stop this watcher (meant for the MCP server process) from re-initializing
+        // sessions on every fresh analysis result it persists.
+        public void StopWatchingForNewAnalysisResult() {
             m_NdarWatcher.Dispose();
         }
 
         // Eventually wait for an async computation to end with GetAwaiter()
-        internal ICompareContext CompareContext => m_InitCompareContextTask.GetAwaiter().GetResult();
-        internal ICodeBaseView JustMyCode => m_InitIssuesTask.GetAwaiter().GetResult().JustMyCode;
-        internal IIssuesSet IssuesSet => m_InitIssuesTask.GetAwaiter().GetResult().IssuesSet;
-        internal IIssuesSetDiff IssuesSetDiff => m_InitIssuesTask.GetAwaiter().GetResult().IssuesSetDiff;
+        public ICompareContext CompareContext => m_InitCompareContextTask.GetAwaiter().GetResult();
+        public ICodeBaseView JustMyCode => m_InitIssuesTask.GetAwaiter().GetResult().JustMyCode;
+        public IIssuesSet IssuesSet => m_InitIssuesTask.GetAwaiter().GetResult().IssuesSet;
+        public IIssuesSetDiff IssuesSetDiff => m_InitIssuesTask.GetAwaiter().GetResult().IssuesSetDiff;
 
         private readonly Task<ICompareContext> m_InitCompareContextTask;
         private readonly Task<IssuesResult> m_InitIssuesTask;

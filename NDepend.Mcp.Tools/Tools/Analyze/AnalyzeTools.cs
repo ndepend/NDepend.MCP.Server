@@ -10,7 +10,9 @@ namespace NDepend.Mcp.Tools.Analyze;
 [McpServerToolType]
 public static class AnalyzeTools {
 
-    internal const string TOOL_RUN_ANALYSIS_NAME = Constants.TOOL_NAME_PREFIX + "run-analysis";
+    // public (not internal): the NDepend.AI fix-issues orchestrator forbids this tool by name in the
+    // prompts it builds for the coding agent (the orchestrator owns the analyze/verify cycle).
+    public const string TOOL_RUN_ANALYSIS_NAME = Constants.TOOL_NAME_PREFIX + "run-analysis";
 
     [McpServerTool(Name = TOOL_RUN_ANALYSIS_NAME, Idempotent = false, Destructive = false, OpenWorld = false, ReadOnly = true),
      Description($"""
@@ -112,9 +114,11 @@ public static class AnalyzeTools {
         return await Task.Run(() => {
             var project = session.Project;
             IAnalysisResult analysisResult = project.RunAnalysisAndBuildReportWithLog(logger, service.StopWatchingForNewAnalysisResult, reportProgressProc);
+            // new Uri(path).AbsoluteUri: "file:///C:/…" on Windows, "file:///home/…" on Unix (a
+            // hand-built "file:///" + "/home/…" gave four slashes, 29Sep2026).
             string result =
 $@"Report generated successfully!
-View it here: ""file:///{analysisResult.AnalysisResultRef.ReportFilePath.ToString()!}""";
+View it here: ""{new Uri(analysisResult.AnalysisResultRef.ReportFilePath.ToString()!).AbsoluteUri}""";
             logger.LogInformation(result);
 
             service.InitializeFromAnalysisResult(analysisResult, logger, reportProgressProc, out _);

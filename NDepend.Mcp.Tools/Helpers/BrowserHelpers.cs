@@ -13,6 +13,16 @@ namespace NDepend.Mcp.Helpers {
   
         internal static void OpenLocalHtml(IAbsoluteFilePath filePath, ILogger logger) {
 
+            // 29Sep2026: a headless Linux box (no display system like DISPLAY / WAYLAND_DISPLAY: 
+			// on a server, a CI agent, WSL1) has nothing to open the page with — 
+			// say where it is instead of failing slowly.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
+                string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")) &&
+                string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"))) {
+                logger.LogInformation($"No graphical session: open the file yourself: {filePath.ToString()}");
+                return;
+            }
+
             logger.LogInformation($"Opening file {filePath.ToString()}");
             // Normalize path to absolute file:// URL
             string url = new Uri(filePath.ToString()!).AbsoluteUri;

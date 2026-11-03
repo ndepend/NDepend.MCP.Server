@@ -14,7 +14,7 @@ namespace NDepend.Mcp.Tools.CodeQuery;
 
 public static partial class CodeQueryTools {
     
-    internal const string TOOL_RUN_QUERY_NAME = Constants.TOOL_NAME_PREFIX + "run-code-query-or-rule";
+    public const string TOOL_RUN_QUERY_NAME = Constants.TOOL_NAME_PREFIX + "run-code-query-or-rule";
 
     const string MAX_PAGE_SIZE = "100";
 
@@ -256,6 +256,7 @@ public static partial class CodeQueryTools {
             codeElement.ExtractSourceDecl(null, out string? filePath, out uint? line);
             ri.SourceFilePath = filePath;
             ri.SourceFileLine = line;
+            ri.IsTestCode = codeElement.IsTestCode;
         } else if (firstCell is IIssue { SourceFileDeclAvailable: true } issueCell) {
             ri.SourceFilePath = issueCell.SourceDecl.SourceFile.FilePathString;
             ri.SourceFileLine = issueCell.SourceDecl.Line;

@@ -11,4 +11,6 @@ public record RecordInfo(string[] Cells, string IssueExplanation) {
     public string? SourceFilePath { get; set; }
     [Description("Line number if available")]
     public uint? SourceFileLine { get; set; }
+    [Description("True if the first cell is a code element and it is declared in a test assembly")]
+    public bool? IsTestCode { get; set; }
 }

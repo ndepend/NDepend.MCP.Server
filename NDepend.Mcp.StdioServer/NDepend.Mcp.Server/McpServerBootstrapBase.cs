@@ -114,8 +114,19 @@ namespace NDepend.Mcp.Server {
                     try {
                         Directory.CreateDirectory(logDirPath);
                     } catch (Exception ex) {
-                        Console.Error.WriteLine($"Failed to create log directory: {ex.Message}");
-                        return false;
+                        // 29Sep2026 (Linux/macOS): a non-creatable directory (e.g. a client passing a
+                        // system location such as /usr/share) must not take the whole server down:
+                        // fall back to the temp dir (same fallback as NDepend.AI's AppDirs), and only
+                        // give up when even that fails.
+                        string fallbackDirPath = Path.Combine(Path.GetTempPath(), "NDepend", "mcp-svr-logs");
+                        Console.Error.WriteLine($"Failed to create log directory: {ex.Message}. Falling back to: {fallbackDirPath}");
+                        try {
+                            Directory.CreateDirectory(fallbackDirPath);
+                            logDirPath = fallbackDirPath;
+                        } catch (Exception ex2) {
+                            Console.Error.WriteLine($"Failed to create the fallback log directory: {ex2.Message}");
+                            return false;
+                        }
                     }
                 }
                 string logFilePath = Path.Combine(logDirPath, $"{ApplicationName}-.log");

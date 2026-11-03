@@ -26,6 +26,7 @@ public static partial class CodeQueryFeature {
             SOURCE_FILE_DECLARATION => SOURCE_FILE_DECLARATION_PROMPT,
             EVENT_PATTERN => EVENT_PATTERN_PROMPT,
             CONSTRUCTOR_INSTANTIATION => CONSTRUCTOR_INSTANTIATION_PROMPT,
+            PERFORMANCE => PERFORMANCE_PROMPT,
             _ => ""
         };
         return featurePrompt.Length > 0;
@@ -61,6 +62,8 @@ public static partial class CodeQueryFeature {
          `{SOURCE_FILE_DECLARATION}`: {SOURCE_FILE_DECLARATION_EXPL}
          `{EVENT_PATTERN}`: {EVENT_PATTERN_EXPL}
          `{CONSTRUCTOR_INSTANTIATION}`: {CONSTRUCTOR_INSTANTIATION_EXPL}
+
+         `{PERFORMANCE}`: {PERFORMANCE_EXPL}
          """;
 
     // Define NDepend query features.
@@ -97,7 +100,7 @@ public static partial class CodeQueryFeature {
         "Use for comment metrics (percentage, documentation). " +
         "Applies to: methods, types, namespaces, projects, entire codebase.";
 
-    internal const string DIRECT_DEPENDENCY = "direct-dependency";
+    public const string DIRECT_DEPENDENCY = "direct-dependency";
     internal const string DIRECT_DEPENDENCY_EXPL =
         "Use for analyzing direct relationships between code elements (usage, coupling). " +
         "Includes: method/type/namespace/project dependencies and references.";
@@ -164,7 +167,7 @@ public static partial class CodeQueryFeature {
         "Use for comparing code against baseline snapshot. " +
         "Identifies: new/removed/modified elements, dependency changes, metric changes.";
 
-    internal const string NAMING = "naming";
+    public const string NAMING = "naming";
     internal const string NAMING_EXPL =
         "Use for naming conventions and identifier patterns. " +
         "Analyzes: naming rules, prefixes/suffixes, casing (PascalCase, camelCase).";
@@ -188,4 +191,10 @@ public static partial class CodeQueryFeature {
     internal const string CONSTRUCTOR_INSTANTIATION_EXPL =
         "Pattern where objects are instantiated directly via constructors. " +
         "Analyzes creation dependencies and adherence to dependency inversion.";
+
+    public const string PERFORMANCE = "query-performance";
+    internal const string PERFORMANCE_EXPL =
+        "Use to make a query execute fast on large code bases and avoid the query timeout. " +
+        "Covers: linear O(n) patterns, hoisting sub-queries with let, optimized extension methods " +
+        "(UsingAny, ThatImplementAny, WithNameIn), ToHashSet O(1) lookups.";
 }

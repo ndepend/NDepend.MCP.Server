@@ -54,8 +54,9 @@ Watch this video featuring the NDepend MCP Server, including five complete demos
   ![artifacts-ndepend-install](artifacts/images/artifacts-ndepend.png) 
 
 - **REQUIRED:** Run **VisualNDepend.exe** once to start your evaluation or register a license.
+  On Linux/macOS, run `dotnet NDepend.Console.MultiOS.dll /regeval` (or `/reglic <key>`) from the redistributable's `net10.0` directory instead.
 
-- Then rebuild the solution **%ndp-mcp-svr-dir%\NDepend.Mcp.Server.sln** (.NET 10.0 required)
+- Then rebuild the solution **%ndp-mcp-svr-dir%\NDepend.Mcp.Server.slnx** (.NET 10.0 required)
 
 - DLLs and executables built can be found here:
 ```
@@ -67,40 +68,93 @@ Watch this video featuring the NDepend MCP Server, including five complete demos
 
 ## MCP Server Registration
 
-The image below shows two screenshots—Visual Studio on the left and VS Code on the right. You can register the NDepend MCP Server from either environment using these menus.
+The NDepend MCP Server is a **stdio** server: the coding agent launches it and talks to it over standard input/output. Every agent below needs the same two things: a server name and the command that starts the server.
 
-![ndepend-logo](artifacts/images/vs-reg-mcp.png) 
+**Server name:** use a name without dots, such as `ndepend`. Codex reads the name as a TOML key (a dot would split it), and the other agents derive their tool ids from it.
 
-This will add to the MCP JSON configuration file (for stdio):
+**Command:**
+
+| OS | Command |
+|---|---|
+| Windows | `%ndp-mcp-svr-dir%\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\NDepend.Mcp.StdioServer.exe` |
+| Linux / macOS | `dotnet %ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll` |
+
+No `.exe` apphost is produced on Linux/macOS, so the server is launched through the dotnet host there. The same commands work with the pre-built server shipped in the NDepend redistributable's `net10.0` directory (`<ndepend-install>\net10.0\NDepend.Mcp.StdioServer.exe`, or `dotnet <ndepend-install>/net10.0/NDepend.Mcp.StdioServer.dll`).
+
+**Optional arguments**, appended after the command:
+- `--load-ndproj-or-slnx <path>` loads an NDepend project (`.ndproj`) or a solution (`.slnx` / `.sln`) at startup. Without it, the agent calls `ndepend-initialize-from-solution` first.
+- `--log-directory <dir>` sets where the logs go (see [Logs](#logs)). Without it, logs go to a `logs` directory next to the server. When the directory cannot be created, the server falls back to the temp directory.
+
+Loading a project and running an analysis can take minutes on a large code base: raise the agent's MCP startup and tool-call timeouts where it has them (see Codex below).
+
+### Claude Code
+
+From the command line (`--scope user` for every project, `--scope project` to share it through a `.mcp.json` at the repository root):
+
+```
+claude mcp add ndepend --scope user -- "%ndp-mcp-svr-dir%\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\NDepend.Mcp.StdioServer.exe"
+claude mcp add ndepend --scope user -- dotnet "%ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll"
+```
+
+or in the repository's `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "ndepend": {
+      "command": "dotnet",
+      "args": ["%ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll"]
+    }
+  }
+}
+```
+
+Check it with `claude mcp list`, or `/mcp` inside a session.
+
+### Codex
+
+From the command line:
+
+```
+codex mcp add ndepend -- dotnet "%ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll"
+```
+
+or in `~/.codex/config.toml`. The timeouts matter here: Codex's defaults are shorter than a project load or an analysis.
+
+```toml
+[mcp_servers.ndepend]
+command = "dotnet"
+args = ["%ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll"]
+startup_timeout_sec = 300
+tool_timeout_sec = 300
+```
+
+On Windows, `command` is the `.exe` path and `args` is empty (or holds the optional arguments). In TOML, write Windows paths with forward slashes or doubled backslashes.
+
+### GitHub Copilot
+
+**Visual Studio 2026 and VS Code.** Both IDEs can register the server from their menus (Visual Studio on the left, VS Code on the right):
+
+![ndepend-logo](artifacts/images/vs-reg-mcp.png)
+
+This adds to the MCP JSON configuration file:
 
 ```json
 {
   "inputs": [],
   "servers": {
-    "NDepend.Mcp.Server": {
+    "ndepend": {
       "type": "stdio",
-      "command": "%ndp-mcp-svr-dir%\\\artifacts\\bin\\NDepend.Mcp.StdioServer\\Debug\\net10.0\\NDepend.Mcp.StdioServer.exe",
+      "command": "%ndp-mcp-svr-dir%\\artifacts\\bin\\NDepend.Mcp.StdioServer\\Debug\\net10.0\\NDepend.Mcp.StdioServer.exe",
       "env": {}
     }
   }
 }
 ```
 
-or for Steamable HTTP
+On Linux/macOS, use `"command": "dotnet"` and `"args": ["<path to NDepend.Mcp.StdioServer.dll>"]`.
 
-```json
-{
-  "inputs": [],
-  "servers": {
-    "NDepend.Mcp.Server": {
-      "type": "http",
-      "url": "http://localhost:3001/mcp"
-    }
-  }
-}
-```
-
-Github Copilot MCP configuration file for Visual Studio 2026 or VSCode can be found here:
+The configuration file can live here:
 ```
 C:\Users\%usr%\AppData\Roaming\Code\User\mcp.json - Global configuration for all solutions
 [SOLUTIONDIR]\.vs\mcp.json - Visual Studio only, solution-specific, user-specific
@@ -108,7 +162,71 @@ C:\Users\%usr%\AppData\Roaming\Code\User\mcp.json - Global configuration for all
 [SOLUTIONDIR]\.vscode\mcp.json - Supports both VS Code and Visual Studio
 ```
 
-Note that if the same MCP server is listed in both a global configuration file and a solution-specific configuration file, Copilot treats them as separate servers, which can cause conflicts.
+If the same MCP server is listed in both a global and a solution-specific configuration file, Copilot treats them as separate servers, which can cause conflicts.
+
+**Copilot CLI.** From the command line:
+
+```
+copilot mcp add ndepend -- dotnet "%ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll"
+```
+
+This writes the user configuration `~/.copilot/mcp-config.json`. A workspace can also declare it in `.mcp.json` or `.github/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "ndepend": {
+      "type": "local",
+      "command": "dotnet",
+      "args": ["%ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll"],
+      "tools": ["*"]
+    }
+  }
+}
+```
+
+Check it with `copilot mcp list`.
+
+### Junie
+
+Junie reads `mcp.json` from `~/.junie/mcp/` (every project) and from `.junie/mcp/` in the project (this project only):
+
+```json
+{
+  "mcpServers": {
+    "ndepend": {
+      "command": "dotnet",
+      "args": ["%ndp-mcp-svr-dir%/artifacts/bin/NDepend.Mcp.StdioServer/Debug/net10.0/NDepend.Mcp.StdioServer.dll"]
+    }
+  }
+}
+```
+
+The Junie CLI can also read additional folders with `--mcp-location=<folder>`.
+
+### Streamable HTTP
+
+`NDepend.Mcp.HttpServer` serves the same tools over Streamable HTTP, at `http://localhost:3001/mcp` by default (`--port <n>` to change it). Start it yourself, then register the URL:
+
+```
+claude mcp add --transport http ndepend http://localhost:3001/mcp
+codex mcp add ndepend --url http://localhost:3001/mcp
+copilot mcp add --transport http ndepend http://localhost:3001/mcp
+```
+
+or, in a Visual Studio / VS Code MCP JSON file:
+
+```json
+{
+  "inputs": [],
+  "servers": {
+    "ndepend": {
+      "type": "http",
+      "url": "http://localhost:3001/mcp"
+    }
+  }
+}
+```
 
 ## Logs
 

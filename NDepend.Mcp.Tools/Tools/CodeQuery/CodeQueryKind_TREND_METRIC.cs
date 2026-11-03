@@ -44,8 +44,20 @@ public partial class CodeQueryKind {
 
         ```csharp
         // <TrendMetric Name="Percentage of Comments" Unit="%" />
-        codeBase.PercentageComment
+        // Application code only: test code (the TestCode domain) is not counted
+        let loc      = (double)Application.Assemblies.Sum(a => a.NbLinesOfCode ?? 0)
+        let comments = (double)Application.Assemblies.Sum(a => a.NbLinesOfComment ?? 0)
+        select (loc + comments) == 0d ? (double?)null : 100d * comments / (loc + comments)
         ```
+
+        ```csharp
+        // <TrendMetric Name="# Tests" Unit="Tests" />
+        from m in TestCode.Methods
+        where m.IsTestMethod
+        select new { m, m.ParentType, m.NbLinesOfCode }
+        //<Desc> The test methods declared in the test assemblies.</Desc>
+        ```
+
 
         ## Trend Metrics About Issues, Rules, and Quality Gates:
 

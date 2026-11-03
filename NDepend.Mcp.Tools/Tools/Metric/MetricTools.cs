@@ -25,6 +25,8 @@ public static class MetricTools {
                     # Code Metrics Collection
                     
                     Collect code metrics to assess quality, maintainability, and test coverage.
+                    Application code only by default: set `includeTestCode` to search the test assemblies too.
+
                     
                     Call this tool:
                     - **REQUIRED:** when metrics are requested
@@ -116,6 +118,10 @@ public static class MetricTools {
                 [Description(CodeElementApplyFilter.FILTER_PARENT_PROJECT_NAME_DESC)]
                 string? filterProjectName,
 
+                [Description(CodeElementApplyFilter.INCLUDE_TEST_CODE_DESC)]
+                bool includeTestCode,
+
+
                 [Description(
                     $$"""
                       List of metric names to retrieve.
@@ -174,6 +180,7 @@ public static class MetricTools {
                   filterSimpleNamePattern: `{filterSimpleNamePattern ?? "<any>"}`
                   filterParentNamePattern: `{filterParentNamePattern ?? "<any>"}`
                   filterProjectName: `{filterProjectName ?? "<any>"}`
+                  includeTestCode: `{includeTestCode}`
                   metricNames: `{metricNames.Aggregate("', '")}`
                   thresholdMetric: `{thresholdMetric ?? "<any>"}`
                   thresholdGreaterLower: `{thresholdGreaterLower ?? "<any>"}`
@@ -186,7 +193,7 @@ public static class MetricTools {
         return await Task.Run(() => {
 
             // Apply currentOrBaseline
-            ICodeBaseView codeBase = session.GetApplicationCurrentOrBaseline(logger, currentOrBaseline, out CurrentOrBaseline currentOrBaselineVal);
+            ICodeBaseView codeBase = session.GetApplicationCurrentOrBaseline(logger, currentOrBaseline, includeTestCode, out CurrentOrBaseline currentOrBaselineVal);
 
             // If the user ask about code coverage but code coverage hasen't been imported
             // show the user the import coverage doc link: https://www.ndepend.com/docs/code-coverage

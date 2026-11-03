@@ -28,9 +28,12 @@ public static class ProjectFromSolutionHelpers {
         return false;
     }
 
+    // 13Oct2026: coverageDescription is not null when the coverage data of the solution tests has been found,
+    //            the project then imports it at each analysis, see TryApplyCoverageDirFound().
     public static IProject CreateNDependProjectSideBySideWithTheSolution(
             ILogger logger, 
-            IAbsoluteFilePath solutionFilePath) {
+            IAbsoluteFilePath solutionFilePath,
+            out string? coverageDescription) {
         var projectFilePath = GetSideBySideProjectFilePath(solutionFilePath);
         logger.LogInformation(
     $"""
@@ -41,8 +44,32 @@ public static class ProjectFromSolutionHelpers {
         var projectManager = new NDependServicesProvider().ProjectManager;
         var project = projectManager.CreateBlankProject(projectFilePath, solutionFilePath.FileNameWithoutExtension);
         project.CodeToAnalyze.SetIDEFiles([new IDEFile(solutionFilePath, "", IDEFileRootDirResolvingInfo.Default)]);
+        coverageDescription = TryApplyCoverageDirFound(logger, projectManager, project, solutionFilePath);
         projectManager.SaveProject(project);
         return project;
+    }
+
+    //  The coverage data of the solution tests, typically below the solution directory in TestResults directories,
+    //  imported at each analysis when some is found. Nothing found, or an error while searching: nothing changes.
+    //  Returns the description logged, null when nothing has been applied.
+    private static string? TryApplyCoverageDirFound(
+            ILogger logger,
+            IProjectManager projectManager,
+            IProject project,
+            IAbsoluteFilePath solutionFilePath) {
+        if (projectManager.TryProbeCoverageDir([solutionFilePath], out IAbsoluteDirectoryPath coverageDir, out ICoverageDirScan scan, out string failureReason)
+              != TryProbeCoverageDirResult.CoverageFilesFound) {
+            logger.LogInformation($"No coverage data imported by the project: {failureReason}");
+            return null;
+        }
+        bool applied = projectManager.TryApplyCoverageDir(project, coverageDir);
+        Debug.Assert(applied); // A new project
+        int nbFiles = scan.NbRecognizedFiles;
+        string technologies = scan.Technologies.Count == 0 ? "" : " " + string.Join(", ", scan.Technologies);
+        string coverageDescription = $"Coverage data found in {coverageDir} ({nbFiles}{technologies} coverage file{(nbFiles > 1 ? "s" : "")}" +
+                                     $"{(scan.FoundInSubDirs ? " from the latest test run" : "")}): the project imports the coverage data of this directory at each analysis.";
+        logger.LogInformation(coverageDescription);
+        return coverageDescription;
     }
 
     private static IAbsoluteFilePath GetSideBySideProjectFilePath(IAbsoluteFilePath solutionFilePath) {

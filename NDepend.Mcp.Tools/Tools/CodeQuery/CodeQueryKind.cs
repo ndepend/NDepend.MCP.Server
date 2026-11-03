@@ -42,12 +42,12 @@ public static partial class CodeQueryKind {
         the computed fields needed to answer the request.
         """;
 
-    internal const string CODE_RULE = "code-rule";
+    public const string CODE_RULE = "code-rule";
     internal const string CODE_RULE_EXPL =
          "Code rule identifying violations. " +
          "Must start with 'warnif count > 0' and return elements violating quality criteria.";
 
-    internal const string QUALITY_GATE = "quality-gate";
+    public const string QUALITY_GATE = "quality-gate";
     internal const string QUALITY_GATE_EXPL =
         "Quality criterion with warning and failure thresholds. " +
         "Produces PASS, WARN, or FAIL based on measured value.";
@@ -57,7 +57,7 @@ public static partial class CodeQueryKind {
         "Query selecting issues and rules by conditions. " +
         "Filters by severity, scope, or custom logic for targeted checks and reporting.";
 
-    internal const string TREND_METRIC = "trend-metric";
+    public const string TREND_METRIC = "trend-metric";
     internal const string TREND_METRIC_EXPL =
         "Query returning a scalar value stored over time to plot trend charts. " +
         "Can return records (scalar = record count).";

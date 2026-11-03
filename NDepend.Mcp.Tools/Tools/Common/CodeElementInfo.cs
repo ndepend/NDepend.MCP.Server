@@ -15,6 +15,9 @@ namespace NDepend.Mcp.Tools.Common {
             codeElement.ExtractSourceDecl(sourceFileName, out string? filePath, out uint? line);
             this.DeclarationSourceFilePath = filePath;
             this.DeclarationSourceFileLine = line;
+
+            this.IsTestCode = codeElement.IsTestCode;
+            this.IsTestMethod = codeElement.IsMethod && codeElement.AsMethod.IsTestMethod;
         }
 
         [Description(
@@ -38,6 +41,13 @@ namespace NDepend.Mcp.Tools.Common {
 
         [Description("Line number where the code element is declared, if available.")]
         public uint? DeclarationSourceFileLine { get; set; }
+
+        [Description("True when the code element is declared in a test assembly (an assembly referencing a test framework).")]
+        public bool IsTestCode { get; set; }
+
+        [Description("True when the code element is a test method (tagged with a test framework attribute like [Test], [Fact] or [TestMethod]).")]
+        public bool IsTestMethod { get; set; }
+
 
 
     }

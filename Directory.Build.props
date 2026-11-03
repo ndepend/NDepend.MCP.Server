@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- NET11 **** hardcoded: must equal NDependNetCoreTfm (NDepend.AI.csproj PreCopyMcpServerAssemblies reads
+         artifacts\bin\NDepend.Mcp.StdioServer\$(Configuration)\$(NDependNetCoreTfm)); same in C:\My\NDepend\NDepend.MCP.Server -->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>14.0</LangVersion>

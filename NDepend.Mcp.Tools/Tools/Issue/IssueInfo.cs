@@ -25,6 +25,10 @@ public record IssueInfo {
     [Description("Code element fully qualified name")]
     public string CodeElement { get; set; } = "";
 
+    [Description("True when the code element is declared in a test assembly: such issues can be deprioritized when the user asks about the application code")]
+    public bool IsTestCode { get; set; }
+
+
     [Description("Source file path")]
     public string SourceFilePath { get; set; } = "";
 

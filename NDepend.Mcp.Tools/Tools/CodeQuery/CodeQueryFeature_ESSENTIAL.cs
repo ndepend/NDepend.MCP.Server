@@ -43,21 +43,40 @@ public partial class CodeQueryFeature {
      Casting: ICodeElement exposes IsType/AsType, IsMethod/AsMethod, etc.
      
      ### Domain Prefix (optional)
-     
-     - `JustMyCode.` — user source only (no generated code)
-     - `Application.` — all user code (including generated)
-     - `ThirdParty.` — external libraries / NuGet packages
-     - *(no prefix)* — everything (user code + all dependencies)
-     
+
+     - `Application.` — the application code: user assemblies that are neither third-party nor test assemblies (generated code included)
+     - `TestCode.` — the test assemblies (assemblies referencing a test framework: NUnit, xUnit, MSTest, TUnit...)
+     - `ApplicationAndTestCode.` — application + test assemblies (everything the user compiles)
+     - `JustMyCode.` — application code minus generated code; it NEVER contains test code
+     - `ThirdParty.` — external libraries / NuGet packages / framework assemblies
+     - *(no prefix)* — everything (application + test + third-party)
+
+     Default to `Application.` or `JustMyCode.` unless the user asks about tests: architecture, naming, mutability,
+     dead code, metrics and coverage are about the application code. Tests are pure users: nothing references a test assembly.
+
      Examples:
-     - Types 
-     - JustMyCode.Methods → only user’s methods, excluding generated code
-     - Application.Types → all user types
-     
+     - Types → everything
+     - JustMyCode.Methods → the application methods, excluding generated code
+     - Application.Types → all application types, no test types
+     - TestCode.Methods.Where(m => m.IsTestMethod) → the test methods
+     - ApplicationAndTestCode.Types → application and test types
+
      These are shorthand for:
      context.CodeBase.Types
      context.JustMyCode.Methods
      codeBase.Application.Types
+     codeBase.TestCode.Methods
+
+     ### Test Code Flags
+
+     - `IsTestCode` (ICodeElement) — declared in a test assembly (assembly, namespace, type, method, field)
+     - `IsTestMethod` (IMethod) / `IsTestClass` (IType) — tagged with a test framework attribute ([Test], [Fact], [TestMethod]...)
+     - `IsTestFramework` (ICodeElement) — third-party assembly (and its children) used only by test assemblies (nunit.framework, xunit.core, Moq...)
+
+     Examples:
+     - from t in TestCode.Types where t.IsTestClass select new { t, Tests = t.Methods.Where(m => m.IsTestMethod) }
+     - from t in Application.Types where t.TypesUsingMe.Any() && t.TypesUsingMe.All(u => u.IsTestCode) select t   // application code used only from tests
+
      
      ### Range Variable Naming
      

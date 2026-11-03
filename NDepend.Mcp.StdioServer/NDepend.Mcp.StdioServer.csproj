@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\NDepend.MCP.Tools\NDepend.Mcp.Tools.csproj" />
+        <ProjectReference Include="..\NDepend.Mcp.Tools\NDepend.Mcp.Tools.csproj" />
     </ItemGroup>
 
     <ItemGroup>

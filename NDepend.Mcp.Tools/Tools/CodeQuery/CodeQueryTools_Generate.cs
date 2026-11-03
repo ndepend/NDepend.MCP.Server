@@ -11,7 +11,7 @@ namespace NDepend.Mcp.Tools.CodeQuery;
 [McpServerToolType]
 public static partial class CodeQueryTools {
     
-    internal const string TOOL_GEN_QUERY_NAME = Constants.TOOL_NAME_PREFIX + "gen-code-query-and-rule";
+    public const string TOOL_GEN_QUERY_NAME = Constants.TOOL_NAME_PREFIX + "gen-code-query-and-rule";
     
     [McpServerTool(Name = TOOL_GEN_QUERY_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
      Description($"""

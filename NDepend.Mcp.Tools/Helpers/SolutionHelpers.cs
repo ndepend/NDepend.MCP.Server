@@ -245,12 +245,23 @@ namespace NDepend.Mcp.Helpers {
                             string key = workspace.Name;
 
                             // Remove "file:///" prefix if present
+                            // 30Sep2026: on Linux/macOS keep the 3rd '/', the root of the absolute path.
                             const string FILE_PREFIX = "file:///";
                             if (key.StartsWith(FILE_PREFIX, StringComparison.OrdinalIgnoreCase)) {
-                                key = key.Substring(FILE_PREFIX.Length);
+                                key = key.Substring(OperatingSystem.IsWindows() ? FILE_PREFIX.Length : FILE_PREFIX.Length - 1);
                             }
 
                             // URL decode to handle encoded characters like %3A -> :
+                            // Samples  { key  →  decodedPath }:
+                            //   Windows:  "file:///c%3A/Users/pat/source/repos/MyApp"     →  "c:/Users/pat/source/repos/MyApp"
+                            //             "file:///c%3A/My%20Projects/App"                →  "c:/My Projects/App"
+                            //   Linux:    "file:///home/ric/src/nodatime"                 →  "/home/ric/src/nodatime"
+                            //             "file:///home/ric/My%20Projects/app"            →  "/home/ric/My Projects/app"
+                            //   macOS:    "file:///Users/ric/dev/MyApp"                   →  "/Users/ric/dev/MyApp"
+                            //   Remote:   "vscode-remote://wsl%2Bubuntu/home/pat/src/app" →  "vscode-remote://wsl+ubuntu/home/pat/src/app"
+                            //             (not an absolute directory path: skipped below)
+                            // NB: Uri.LocalPath is NOT an option: VS Code escapes the drive colon (c%3A)
+                            // and Uri then yields "/c:/Users/…" on every OS, not a Windows path.
                             string decodedPath = HttpUtility.UrlDecode(key);
 
                             if (!decodedPath.TryGetAbsoluteDirectoryPath(out IAbsoluteDirectoryPath dir) ||

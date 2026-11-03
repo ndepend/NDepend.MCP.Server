@@ -30,6 +30,7 @@ public partial class CodeQueryKind {
         - `<Expl>`: {0}=codeElement.ToString(), {1},{2}...=additional selected props in order
         - `<Desc>`: General description of the rule
         - `<HowToFix>`: Actionable remediation steps
+        `<Name>` and `<Id>` usually go before `warnif`; `<Desc>`, `<Expl>`, and `<HowToFix>` go after `select`.
 
         Example debt calculations:
         - let debt = 5.ToMinutes().ToDebt()  // Fixed 5 minutes per violation

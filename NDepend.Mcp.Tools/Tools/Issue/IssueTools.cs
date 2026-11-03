@@ -18,9 +18,11 @@ namespace NDepend.Mcp.Tools.Issue;
 public static class IssueTools {
 
     
-    internal const string TOOL_LIST_ISSUES_NAME = Constants.TOOL_NAME_PREFIX + "list-issues";
+    // public (not internal): the NDepend.AI fix-issues orchestrator references these names in the
+    // prompts it builds for the coding agent (like CodeQueryTools.TOOL_RUN_QUERY_NAME).
+    public const string TOOL_LIST_ISSUES_NAME = Constants.TOOL_NAME_PREFIX + "list-issues";
 
-    internal const string TOOL_GET_ISSUE_DETAILS_TO_FIX_IT_NAME = Constants.TOOL_NAME_PREFIX + "get-issue-details-to-fix-it";
+    public const string TOOL_GET_ISSUE_DETAILS_TO_FIX_IT_NAME = Constants.TOOL_NAME_PREFIX + "get-issue-details-to-fix-it";
 
 
     const string MAX_PAGE_SIZE = "50";
@@ -209,7 +211,7 @@ public static class IssueTools {
             var debtFormatter = project.DebtSettings.Values.CreateDebtFormatter();
             var issuesInfo = issues.Select(i => {
                 var issueInfo = new IssueInfo();
-                FillIssueInfo(i, issueInfo, debtFormatter, filterIssueChangeStatusVal);
+                IssueInfoBuilder.Fill(i, issueInfo, debtFormatter, filterIssueChangeStatusVal);
                 return issueInfo;
             }).ToList();
 
@@ -281,42 +283,18 @@ public static class IssueTools {
                 return null;
             }
 
-            // FillIssueInfo
+            // The formatting itself lives in IssueInfoBuilder, shared with the NDepend.AI fix-issues
+            // orchestrator (single source of truth for the agent-facing issue text).
             Debug.Assert(issueFound != null);
             var project = session.Project;
             var debtFormatter = project.DebtSettings.Values.CreateDebtFormatter();
-            var issueDetails = new IssueDetailsForFixingItInfo();
             var issueChangeStatus = IssueChangeStatusSinceBaseline.Unresolved;
             var issuesSetDiff = session.IssuesSetDiff;
             if (issuesSetDiff.AllIssuesAdded.Contains(issueFound)) {
                 issueChangeStatus = IssueChangeStatusSinceBaseline.New;
             }
-        
 
-            FillIssueInfo(issueFound, issueDetails, debtFormatter, issueChangeStatus);
-
-            // Fill properties specifics to IssueDetailsForFixingItInfo
-            if (issueFound.Rule.TryGetDescription(StringFormattingKind.Readable, out string ruleDescription)) {
-                issueDetails.RuleDescription = ruleDescription;
-            }
-            if (issueFound.Rule.TryGetHowToFix(StringFormattingKind.Readable, out string ruleHowToFix)) {
-                issueDetails.RuleHowToFix = ruleHowToFix;
-            }
-            if (issueFound.Record is RecordBase record) {
-                var columnNames = issueFound.ColumnsNames;
-                Debug.Assert(columnNames.Count == record.RecordArity);
-
-                var extraInfo = new Dictionary<string, string>();
-                for(int i=1; i < record.RecordArity; i++) { // First column is always the code element we already have in IssueInfo.CodeElement
-                    RecordCellValue cellValue = record[i];
-                    if(cellValue.m_RecordCellType == RecordCellType.Debt) { continue; } // Already available in IssueInfo.Debt
-                    string itemDesc = cellValue.GetRecordCellValueDescription(debtFormatter);
-                    extraInfo.Add(columnNames[i], itemDesc);
-                }
-                issueDetails.ExtraInfo = extraInfo;
-            }
-
-            return issueDetails;
+            return IssueInfoBuilder.BuildDetailsToFixIt(issueFound, debtFormatter, issueChangeStatus);
         }, cancellationToken);
     }
 
@@ -326,26 +304,6 @@ public static class IssueTools {
     //
     // Helpers
     //
-
-
-    // IssueDetailsForFixingItInfo derives from IssueInfo so we can reuse this method in both cases
-    private static void FillIssueInfo(IIssue issue, IssueInfo issueInfo, IDebtFormatter debtFormatter, IssueChangeStatusSinceBaseline issueChangeStatus) {
-
-        if (!issue.TryGetExplanation(StringFormattingKind.Readable, debtFormatter, out string explanation)) {
-            explanation = Constants.NOT_AVAILABLE;
-        }
-
-        issueInfo.RuleProvider = issue.Rule.Provider.GetString();
-        issueInfo.RuleId = issue.Rule.Id;
-        issueInfo.RuleName = issue.Rule.Name;
-        issueInfo.Explanation = explanation;
-        issueInfo.Severity = issue.Severity.GetString();
-        issueInfo.CodeElement = issue.CodeElement.FullyQualifiedName();
-        issueInfo.SourceFilePath = issue.SourceDecl?.SourceFile?.FilePathString ?? string.Empty;
-        issueInfo.SourceFileLine = issue.SourceDecl?.Line ?? 0;
-        issueInfo.IssueChangeStatus = issueChangeStatus.GetString();
-        issueInfo.Debt = debtFormatter.ToString(issue.Debt.Value);
-    }
 
     private static bool TryFindIssue(
                 IIssuesSet issuesSet, 

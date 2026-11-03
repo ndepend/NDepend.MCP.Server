@@ -27,6 +27,8 @@ public static class DependencyTools {
                   
                   Collect and show dependencies for target code elements.
                   By default, generates an SVG HTML graph and opens it in the browser.
+                  Application code only by default: set `includeTestCode` to also target the test assemblies and to list
+                  the callers declared in test assemblies (each result tells whether it `IsTestCode`).
                   
                   ## Use-Cases
                   
@@ -137,6 +139,10 @@ public static class DependencyTools {
                 [Description(CodeElementApplyFilter.FILTER_PARENT_PROJECT_NAME_DESC)]
                 string? filterProjectName,
 
+                [Description(CodeElementApplyFilter.INCLUDE_TEST_CODE_DESC)]
+                bool includeTestCode,
+
+
                 [Description(
                     $"""
                      List of dependency kinds to retrieve.
@@ -168,6 +174,7 @@ public static class DependencyTools {
                -filterSimpleNamePattern: `{filterSimpleNamePattern ?? "<any>"}`
                -filterParentNamePattern: `{filterParentNamePattern ?? "<any>"}`
                -filterProjectName: `{filterProjectName ?? "<any>"}`
+               -includeTestCode: `{includeTestCode}`
                
                -dependencyKindsStrings: `{dependencyKindsStrings.Aggregate("', '")}`
             """);
@@ -178,7 +185,7 @@ public static class DependencyTools {
         return await Task.Run(() => {
 
             // Apply currentOrBaseline
-            ICodeBaseView codeBaseView = session.GetApplicationCurrentOrBaseline(logger, currentOrBaseline, out CurrentOrBaseline currentOrBaselineVal);
+            ICodeBaseView codeBaseView = session.GetApplicationCurrentOrBaseline(logger, currentOrBaseline, includeTestCode, out CurrentOrBaseline currentOrBaselineVal);
 
             // Fill codeElements
             List<ICodeElement> codeElementsTarget = [];
@@ -198,6 +205,11 @@ public static class DependencyTools {
             foreach (var codeElementTarget in codeElementsTarget) {
                 FillDependencies.Go(dependencies, codeElementTarget, dependencyKinds);
             }
+
+            if (!includeTestCode) {
+                dependencies.RemoveAll(d => d.CodeElementDependent.IsTestCode);
+            }
+
 
             // exportGraph
             if (exportGraph) { ExportGraph(logger, dependencyKinds, codeElementsTarget); }

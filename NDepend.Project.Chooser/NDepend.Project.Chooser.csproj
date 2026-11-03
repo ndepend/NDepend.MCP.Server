@@ -19,6 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\artifacts\bin\NDepend.Mcp.StdioServer\Debug\net10.0\</OutputPath>
+    <!-- NET11 **** hardcoded net10.0 -> net11.0 (next to NDepend.Mcp.StdioServer, see Directory.Build.props TargetFramework) -->
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,6 +29,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\artifacts\bin\NDepend.Mcp.StdioServer\Release\net10.0\</OutputPath>
+    <!-- NET11 **** hardcoded net10.0 -> net11.0 -->
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>

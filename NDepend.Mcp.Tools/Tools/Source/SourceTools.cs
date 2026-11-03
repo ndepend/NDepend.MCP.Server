@@ -11,8 +11,10 @@ namespace NDepend.Mcp.Tools.Source;
 [McpServerToolType]
 public static class SourceTools {
 
-    internal const string TOOL_SOURCE_NAME = Constants.TOOL_NAME_PREFIX + "get-sources";
-    internal const string TOOL_DIFF_SOURCE_NAME = Constants.TOOL_NAME_PREFIX + "diff-sources";
+    // public (not internal): the NDepend.AI fix-issues orchestrator references these names in the
+    // prompts it builds for the coding agent.
+    public const string TOOL_SOURCE_NAME = Constants.TOOL_NAME_PREFIX + "get-sources";
+    public const string TOOL_DIFF_SOURCE_NAME = Constants.TOOL_NAME_PREFIX + "diff-sources";
 
     
     [McpServerTool(Name = TOOL_SOURCE_NAME, Idempotent = false, ReadOnly = true, Destructive = false, OpenWorld = false),
