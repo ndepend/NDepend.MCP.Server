@@ -1,6 +1,12 @@
 ![ndepend-logo](artifacts/images/ndepend-logo.png)  ![MCP-logo](artifacts/images/mcp.png) 
 # NDepend.MCP.Server   
 
+> **NDepend.MCP.Server is now part of NDepend.AI**, the NDepend initiative to fix .NET issues at scale with AI. NDepend drives your coding agent (Claude Code, Codex, GitHub Copilot, Junie) to fix hundreds of issues in a single run, then rebuilds, runs the tests, reviews each changed method and re-analyzes the code, so the progress is measured.
+
+Watch the NDepend.AI video:
+
+[![NDepend.AI video](https://img.youtube.com/vi/y402pp2iuQw/maxresdefault.jpg)](https://www.youtube.com/watch?v=y402pp2iuQw)
+
 The **NDepend.MCP.Server** is a Model Context Protocol (MCP) server that delivers deep workspace analysis and advanced code inspection capabilities for .NET projects, powered by the NDepend API.
 
 It turns NDepend's deep code insights into AI-powered actions:
